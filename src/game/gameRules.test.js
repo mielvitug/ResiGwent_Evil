@@ -800,6 +800,133 @@ test('two weakenings transform Jack Baker into his Active Form', () => {
   assert.equal(active.ability, jackStages[1].ability)
 })
 
+const t501Stages = [
+  { power: 8, artwork: 't501_form1.png', ability: 'Flawless Efficiency: boost this card by 2 on deployment. Super Tyrant: transforms after two weakenings.' },
+  { power: 13, artwork: 't501_form2.png', ability: 'Super Tyrant: boost this card by 3 on transformation. Charging Strike: weaken the strongest opposing card by 2. Fully mutated.', mutateEffects: [{ type: 'boost-self', amount: 3 }, { type: 'damage-strongest', amount: 2 }] },
+]
+
+function t501Card() {
+  return { ...opponentCard('t501', 8, 'Melee', { evolution: { stages: t501Stages, trigger: 'when-weakened', triggerHits: 2, formLabels: ['Dormant State', 'Super State'] } }), evolutionStage: 0, artwork: 't501_form1.png', ability: t501Stages[0].ability }
+}
+
+test('two weakenings transform T-501 and fire both Super State entry effects', () => {
+  const scorchA = playerCard('scorcher-a', 5, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })
+  const scorchB = playerCard('scorcher-b', 3, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [scorchA, scorchB] }),
+    opponentHand: [],
+    opponentRows: { Melee: [t501Card()], Ranged: [], Siege: [] },
+  }
+
+  const once = playPlayerCard(match, 'scorcher-a', 'Melee')
+  const dormant = once.opponentRows.Melee.find((card) => card.id === 't501')
+  assert.equal(dormant.evolutionStage, 0)
+  assert.equal(dormant.power, 8)
+
+  const twice = playPlayerCard(resolveOpponentTurn(once), 'scorcher-b', 'Melee')
+  const active = twice.opponentRows.Melee.find((card) => card.id === 't501')
+
+  assert.equal(active.evolutionStage, 1)
+  assert.equal(active.power, 13)
+  assert.equal(active.artwork, 't501_form2.png')
+  assert.equal(active.bonus, 1)
+  assert.equal(active.ability, t501Stages[1].ability)
+  const struck = twice.playerRows.Melee.find((card) => card.id === 'scorcher-a')
+  assert.equal(struck.bonus, -2)
+})
+
+const hunkStages = [
+  { power: 8, artwork: 'Hunk.webp', ability: '"This is war. Survival is your responsibility." — The Grim Reaper: weaken the strongest opposing card by 1. The Commander: boost this row by 1. Combat shift: changes style after two weakenings.' },
+  { power: 8, artwork: 'Hunk_Commander.png', ability: 'The Commander: boost this card by 3 on transformation. The Grim Reaper: weaken the strongest opposing card by 1. Fully transformed.', mutateEffects: [{ type: 'boost-self', amount: 3 }, { type: 'damage-strongest', amount: 1 }] },
+]
+
+function hunkCard() {
+  return { ...opponentCard('hunk', 8, 'Melee', { evolution: { stages: hunkStages, trigger: 'when-weakened', triggerHits: 2, hideStagePill: true, transformedLabel: 'CLOSE COMBAT STYLE' } }), evolutionStage: 0, artwork: 'Hunk.webp', ability: hunkStages[0].ability }
+}
+
+test('two weakenings shift HUNK into Close Combat Style and fire both entry effects', () => {
+  const scorchA = playerCard('scorcher-a', 5, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })
+  const scorchB = playerCard('scorcher-b', 3, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [scorchA, scorchB] }),
+    opponentHand: [],
+    opponentRows: { Melee: [hunkCard()], Ranged: [], Siege: [] },
+  }
+
+  const once = playPlayerCard(match, 'scorcher-a', 'Melee')
+  const dormant = once.opponentRows.Melee.find((card) => card.id === 'hunk')
+  assert.equal(dormant.evolutionStage, 0)
+  assert.equal(dormant.power, 8)
+
+  const twice = playPlayerCard(resolveOpponentTurn(once), 'scorcher-b', 'Melee')
+  const active = twice.opponentRows.Melee.find((card) => card.id === 'hunk')
+
+  assert.equal(active.evolutionStage, 1)
+  assert.equal(active.power, 8)
+  assert.equal(active.artwork, 'Hunk_Commander.png')
+  assert.equal(active.bonus, 1)
+  assert.equal(active.ability, hunkStages[1].ability)
+  const struck = twice.playerRows.Melee.find((card) => card.id === 'scorcher-a')
+  assert.equal(struck.bonus, -1)
+})
+
+const jillStages = [
+  { power: 6, artwork: 're3_Jill_Valentine2.png', ability: '"It was Raccoon City\'s last chance and my last chance... My last escape." — S.T.A.R.S Survivor: boost this card by 2 on deployment. Last Escape: immune to targeted weakening. Railgun Charging: shifts to Railgun use on turn 5.' },
+  { power: 15, artwork: 'jill_2_railgun.png', ability: '"You want S.T.A.R.S? I\'ll give you S.T.A.R.S!" — Railgun: weaken the strongest opposing card by 3 on transformation. Fully transformed.', mutateEffect: { type: 'damage-strongest', amount: 3 } },
+]
+
+function jillCard() {
+  return { ...playerCard('jill', 6, 'Ranged', { effect: { type: 'boost-self', amount: 2 }, evolution: { stages: jillStages, every: 5, hideStagePill: true, transformedLabel: 'FERROMAGNETIC INFANTRY-USE NEXT GENERATION RAILGUN' }, immune: true }), evolutionStage: 0, artwork: 're3_Jill_Valentine2.png', ability: jillStages[0].ability }
+}
+
+test('Jill shifts to Railgun form at turn 5, striking the strongest foe', () => {
+  const cards = ['a1', 'a2', 'a3', 'a4', 'a5'].map((id) => playerCard(id, 4, 'Melee'))
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards }),
+    playerRows: { Melee: [], Ranged: [jillCard()], Siege: [] },
+    opponentRows: { Melee: [opponentCard('brute', 7, 'Melee')], Ranged: [opponentCard('sniper', 4, 'Ranged')], Siege: [] },
+    opponentHand: ['w1', 'w2', 'w3', 'w4', 'w5'].map((id) => opponentCard(id, 2, 'Melee')),
+  }
+  const play = (state, id) => resolveOpponentTurn(playPlayerCard(state, id, 'Melee'))
+
+  const afterFifth = play(play(play(play(play(match, 'a1'), 'a2'), 'a3'), 'a4'), 'a5')
+  assert.equal(afterFifth.evolutionClock, 5)
+  const railgun = afterFifth.playerRows.Ranged.find((card) => card.id === 'jill')
+  assert.equal(railgun.evolutionStage, 1)
+  assert.equal(railgun.power, 15)
+  assert.equal(railgun.artwork, 'jill_2_railgun.png')
+  assert.equal(railgun.ability, jillStages[1].ability)
+  assert.equal(afterFifth.opponentRows.Melee.find((card) => card.id === 'brute').bonus, -3)
+  assert.equal(afterFifth.opponentRows.Ranged.find((card) => card.id === 'sniper').bonus ?? 0, 0)
+})
+
+test('targeted weakening retargets off immune Jill onto the next-strongest card', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    playerRows: { Melee: [], Ranged: [jillCard(), playerCard('ally', 5, 'Ranged')], Siege: [] },
+    opponentHand: [opponentCard('scorcher', 5, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })],
+  }
+
+  const after = resolveOpponentTurn(playPlayerCard(match, 'a1', 'Melee'))
+  assert.equal(after.playerRows.Ranged.find((card) => card.id === 'ally').bonus, -1)
+  assert.equal(after.playerRows.Ranged.find((card) => card.id === 'jill').bonus ?? 0, 0)
+})
+
+test('targeted weakening fizzles against a lone immune Jill', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    playerRows: { Melee: [], Ranged: [jillCard()], Siege: [] },
+    opponentHand: [opponentCard('scorcher', 5, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })],
+  }
+
+  const after = resolveOpponentTurn(playPlayerCard(match, 'a1', 'Melee'))
+  assert.equal(after.playerRows.Ranged.find((card) => card.id === 'jill').bonus ?? 0, 0)
+})
+
+test('row auras still count immune Jill in scoring (documented exception)', () => {
+  assert.equal(getRowScore([{ power: 6, bonus: 0, immune: true }], -2), 4)
+})
+
 const lucasStages = [
   { power: 7, artwork: 'Lucas_Baker2.webp', ability: '"I\'ve done terrible things...horrible things. I killed your men, I tortured them...and I enjoyed every second, soldier boy!" — Trap: weaken the highest-scoring opposing row by 1. Dormant mutation: transforms after two weakenings.' },
   { power: 13, artwork: 'Lucas_Form2.png', ability: '"Oh boy... So this is what it feels like." — Trap: weaken the highest-scoring opposing row by 1. Fully mutated.' },
@@ -996,6 +1123,80 @@ test('Miranda cycles forms every third turn, empowering a random ally and weaken
   assert.equal(looped.artwork, 'Mother_Miranda_Form.webp')
   assert.equal(allyBonus(afterNinth), 2)
   assert.equal(foeBonus(afterNinth), -1)
+})
+
+function weskerCard() {
+  return playerCard('wesker', 8, 'Melee', {
+    effect: { type: 'boost-row', amount: 1 },
+    recurring: [
+      { every: 4, firstAt: 2, effect: { type: 'boost-self', amount: 3 } },
+      { every: 4, firstAt: 4, effect: { type: 'reset-self' } },
+    ],
+  })
+}
+
+test('Wesker pulses +3 on turns 2 and 6, back to normal on turn 4', () => {
+  const cards = ['a1', 'a2', 'a3', 'a4', 'a5'].map((id) => playerCard(id, 4, 'Melee'))
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [weskerCard(), ...cards] }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+  }
+  const play = (state, id) => resolveOpponentTurn(playPlayerCard(state, id, 'Melee'))
+
+  const afterFirst = play(match, 'wesker')
+  assert.equal(afterFirst.evolutionClock, 1)
+  assert.equal(afterFirst.playerRows.Melee.find((card) => card.id === 'wesker').bonus, 1)
+  assert.equal(afterFirst.playerRowBonuses.Melee, 0)
+
+  const afterSecond = play(afterFirst, 'a1')
+  assert.equal(afterSecond.evolutionClock, 2)
+  assert.equal(afterSecond.playerRows.Melee.find((card) => card.id === 'wesker').bonus, 4)
+
+  const afterFourth = play(play(afterSecond, 'a2'), 'a3')
+  assert.equal(afterFourth.evolutionClock, 4)
+  const normal = afterFourth.playerRows.Melee.find((card) => card.id === 'wesker')
+  assert.equal(normal.bonus, 0)
+  assert.equal(afterFourth.playerRowBonuses.Melee, 0)
+
+  const afterSixth = play(play(afterFourth, 'a4'), 'a5')
+  assert.equal(afterSixth.evolutionClock, 6)
+  assert.equal(afterSixth.playerRows.Melee.find((card) => card.id === 'wesker').bonus, 3)
+})
+
+function zenoCard() {
+  return playerCard('zeno', 8, 'Ranged', {
+    effect: { type: 'boost-self', amount: 1 },
+    effects: [{ type: 'boost-self', amount: 2 }],
+    recurring: [
+      { every: 4, firstAt: 2, effect: { type: 'reset-self' } },
+      { every: 4, firstAt: 4, effect: { type: 'boost-self', amount: 2 } },
+    ],
+  })
+}
+
+test('Zeno decays to base on turns 2 and 6, rises again on turn 4', () => {
+  const cards = ['a1', 'a2', 'a3', 'a4', 'a5'].map((id) => playerCard(id, 4, 'Ranged'))
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [zenoCard(), ...cards] }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+  }
+  const play = (state, id) => resolveOpponentTurn(playPlayerCard(state, id, 'Ranged'))
+
+  const afterFirst = play(match, 'zeno')
+  assert.equal(afterFirst.evolutionClock, 1)
+  assert.equal(afterFirst.playerRows.Ranged.find((card) => card.id === 'zeno').bonus, 3)
+
+  const afterSecond = play(afterFirst, 'a1')
+  assert.equal(afterSecond.evolutionClock, 2)
+  assert.equal(afterSecond.playerRows.Ranged.find((card) => card.id === 'zeno').bonus, 0)
+
+  const afterFourth = play(play(afterSecond, 'a2'), 'a3')
+  assert.equal(afterFourth.evolutionClock, 4)
+  assert.equal(afterFourth.playerRows.Ranged.find((card) => card.id === 'zeno').bonus, 2)
+
+  const afterSixth = play(play(afterFourth, 'a4'), 'a5')
+  assert.equal(afterSixth.evolutionClock, 6)
+  assert.equal(afterSixth.playerRows.Ranged.find((card) => card.id === 'zeno').bonus, 0)
 })
 
 const moreauStages = [
@@ -1225,6 +1426,84 @@ test('Gideon reports when no mutation cards are ready to evolve', () => {
 
   assert.equal(next.error, 'There are no mutation cards ready to evolve.')
   assert.equal(next.leaderUsed, false)
+})
+
+test('HUNK leader deploys one silent Alpha Team', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'umbrella-hunk', name: 'HUNK' } }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  assert.equal(next.error, '')
+  const team = next.playerRows.Ranged.filter((card) => card.id.startsWith('umbrella-uss-alpha-team'))
+  assert.equal(team.length, 1)
+  assert.equal(team[0].power, 6)
+  assert.equal(team[0].bonus, undefined)
+})
+
+test('HUNK leader deploys two distinctly-keyed Alpha Teams while his unit fights alongside', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'umbrella-hunk', name: 'HUNK' } }),
+    playerRows: { Melee: [playerCard('umbrella-hunk-unit', 8, 'Melee')], Ranged: [], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  const team = next.playerRows.Ranged.filter((card) => card.id.startsWith('umbrella-uss-alpha-team'))
+  assert.equal(team.length, 2)
+  assert.notEqual(team[0].id, team[1].id)
+})
+
+test('Leon Federal Agent cleanses allied debuffs and keeps buffs', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'fbi-leon-kennedy-re4', name: 'Leon S. Kennedy' } }),
+    playerRows: {
+      Melee: [playerCard('debuffed', 5, 'Melee', { bonus: -2 }), playerCard('buffed', 4, 'Melee', { bonus: 3 }), playerCard('clean', 4, 'Melee')],
+      Ranged: [],
+      Siege: [],
+    },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  assert.equal(next.error, '')
+  assert.equal(next.playerRows.Melee.find((card) => card.id === 'debuffed').bonus, 0)
+  assert.equal(next.playerRows.Melee.find((card) => card.id === 'buffed').bonus, 3)
+  assert.equal(next.playerRows.Melee.find((card) => card.id === 'clean').bonus, undefined)
+})
+
+test('Leon Federal Agent keeps his ability when there is nothing to cleanse', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'fbi-leon-kennedy-re4', name: 'Leon S. Kennedy' } }),
+    playerRows: { Melee: [playerCard('buffed', 4, 'Melee', { bonus: 3 })], Ranged: [], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.error, 'There are no debuffs to remove.')
+  assert.equal(next.leaderUsed, false)
+})
+
+test('William Birkin leader deploys a silent G-Type to Melee', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'umbrella-william-birkin-human', name: 'William Birkin' } }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  assert.equal(next.error, '')
+  const spawned = next.playerRows.Melee.filter((card) => card.id.startsWith('umbrella-birkin-g-type'))
+  assert.equal(spawned.length, 1)
+  assert.equal(spawned[0].power, 5)
+  assert.equal(spawned[0].bonus, undefined)
+  assert.equal(spawned[0].evolutionStage, undefined)
 })
 
 test('Jack Baker deployed by play counts two scorches despite his deployment boost', () => {

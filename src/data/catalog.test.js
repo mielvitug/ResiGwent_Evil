@@ -213,3 +213,14 @@ test('fact-checked card assignments preserve canon affiliations', () => {
   assert.equal(cards.find((card) => card.name === 'Bitores Mendez')?.originGroupId, 'las-plagas')
   assert.equal(cards.find((card) => card.name === 'R.P.D. Shotgun')?.metadata.canonStatus, 'prototype-original')
 })
+
+test('unit extras survive catalog assembly (effects, recurring, hideTypeChip)', () => {
+  // ponytail: regression for the silent unit() drop — Sturm's flame and Saddler's plagas boost vanished in real matches while tests bypassed unit()
+  const joe = cards.find((card) => card.id === 'bsaa-joe-baker')
+  assert.deepEqual(joe.effect, { type: 'boost-self', amount: 2 })
+  assert.deepEqual(joe.recurring, { every: 2, effect: { type: 'damage-random-opponent', amount: 2 } })
+  const saddler = cards.find((card) => card.id === 'los-iluminados-saddler-mutated')
+  assert.ok((saddler.effects ?? []).some((effect) => effect.type === 'boost-allied-origin'))
+  const sturm = cards.find((card) => card.id.endsWith('sturm'))
+  assert.ok(sturm.recurring)
+})

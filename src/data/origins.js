@@ -9,6 +9,7 @@ export const origins = [
   { id: 'fbi-agents', name: 'F.B.I. Agents', organizationId: 'fbi' },
   { id: 'us-government', name: 'U.S. Government', organizationId: 'us-government' },
   { id: 'lone-operatives', name: 'Lone Operatives', organizationId: 'spy' },
+  { id: 'the-organization', name: 'The Organization', organizationId: 'the-organization' },
   { id: 'umbrella-research', name: 'Umbrella Research', organizationId: 'umbrella' },
   { id: 't-virus', name: 'T-Virus', organizationId: 'umbrella' },
   { id: 'g-virus', name: 'G-Virus', organizationId: 'umbrella' },

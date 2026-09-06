@@ -1,5 +1,6 @@
 import { leaderEffects } from './leaderEffects.js'
 import { rows } from '../data/rows.js'
+import { cards } from '../data/catalog.js'
 
 export const ROWS = rows
 export const HAND_SIZE = 13
@@ -80,14 +81,20 @@ function ageOwnedEvolution(state) {
   // ponytail: stage mutateEffects (Miranda) and recurring card effects (Sturm) fire after aging, threaded owner-side through the shared applier
   const pending = []
   const age = (cards, row, owner) => cards.map((card) => {
-    if (card.recurring && clock % card.recurring.every === 0) pending.push({ card, row, owner, effect: card.recurring.effect })
+    // ponytail: one schedule or several (Wesker pulse); firstAt offsets the first fire, defaulting to 0 (Sturm unchanged)
+    const schedules = Array.isArray(card.recurring) ? card.recurring : card.recurring ? [card.recurring] : []
+    schedules.forEach((schedule) => {
+      const firstAt = schedule.firstAt ?? 0
+      if (clock >= firstAt && (clock - firstAt) % schedule.every === 0) pending.push({ card, row, owner, effect: schedule.effect })
+    })
     const next = evolutionPreview(card, clock)
     if (next === null || next === (card.evolutionStage ?? 0)) return card
     const evolved = applyEvolutionStage(card, next)
     // ponytail: hits are per-stage — reset on advance like the trigger path
     const aged = card.evolution?.trigger ? { ...evolved, evolutionWeakeningHits: 0 } : evolved
-    const mutateEffect = card.evolution.stages[next].mutateEffect
-    if (mutateEffect) pending.push({ card: aged, row, owner, effect: mutateEffect })
+    // ponytail: one mutateEffect or several (T-501 Super State) fan out in text order
+    const entryEffects = [card.evolution.stages[next].mutateEffect, ...(card.evolution.stages[next].mutateEffects ?? [])].filter(Boolean)
+    entryEffects.forEach((entryEffect) => pending.push({ card: aged, row, owner, effect: entryEffect }))
     return aged
   })
   const ageRows = (rows, owner) => Object.fromEntries(ROWS.map((row) => [row, age(rows[row] ?? [], row, owner)]))
@@ -143,8 +150,8 @@ function evolveWeakened(state, rowsKey) {
       const aged = applyEvolutionStage(next, stage + 1)
       // ponytail: hits are per-stage — reset on advance so satisfied counters can't auto-advance again without fresh weakenings
       const reset = { ...aged, evolutionWeakeningHits: 0 }
-      const mutateEffect = card.evolution.stages[stage + 1].mutateEffect
-      if (mutateEffect) pending.push({ card: reset, row, owner, effect: mutateEffect })
+      const entryEffects = [card.evolution.stages[stage + 1].mutateEffect, ...(card.evolution.stages[stage + 1].mutateEffects ?? [])].filter(Boolean)
+      entryEffects.forEach((entryEffect) => pending.push({ card: reset, row, owner, effect: entryEffect }))
       return reset
     }),
   ]))
@@ -163,7 +170,7 @@ function detonateWeakened(state, rowsKey) {
     (rows[row] ?? []).map((card) => {
       const scorched = !card.detonated && card.effect?.type === 'deathburst' && ((card.bonus ?? 0) < 0 || rowBonuses[row] < 0)
       if (!scorched) return card
-      const pool = ROWS.flatMap((targetRow) => opposingRows[targetRow].map((foe) => ({ row: targetRow, cardId: foe.id })))
+      const pool = ROWS.flatMap((targetRow) => opposingRows[targetRow].filter((foe) => !foe.immune).map((foe) => ({ row: targetRow, cardId: foe.id })))
       // ponytail: same idiom as damage-random-opponent — pool is tiny, Math.random matches opponent.js
       const shuffled = [...pool].sort(() => Math.random() - 0.5)
       const picks = Math.min(card.effect.count ?? 1, shuffled.length)
@@ -334,6 +341,13 @@ function applyOneEffect(state, card, targetRow, owner, effect) {
     return { ...state, [ownRowsKey]: addBonusToCard(ownRows, targetRow, card.id, effect.amount) }
   }
 
+  if (effect.type === 'reset-self') {
+    // ponytail: Wesker pulse — clears own card bonus (row auras live elsewhere, untouched); incidental ally buffs go too, accepted for the loop
+    const resetRows = cloneRows(ownRows)
+    resetRows[targetRow] = resetRows[targetRow].map((ally) => ally.id === card.id ? { ...ally, bonus: 0 } : ally)
+    return { ...state, [ownRowsKey]: resetRows }
+  }
+
   if (effect.type === 'weaken-opponent-row') {
     const highestRow = findHighestScoreRow(opposingRows, state[opposingRowsKey === 'playerRows' ? 'playerRowBonuses' : 'opponentRowBonuses'])
     const opposingBonusesKey = opposingRowsKey === 'playerRows' ? 'playerRowBonuses' : 'opponentRowBonuses'
@@ -345,12 +359,12 @@ function applyOneEffect(state, card, targetRow, owner, effect) {
     const foes = opposingRows[targetRow] ?? []
     if (foes.length === 0) return state
     let nextOpposing = opposingRows
-    foes.forEach((foe) => { nextOpposing = addBonusToCard(nextOpposing, targetRow, foe.id, -effect.amount) })
+    foes.forEach((foe) => { if (!foe.immune) nextOpposing = addBonusToCard(nextOpposing, targetRow, foe.id, -effect.amount) })
     return { ...state, [opposingRowsKey]: nextOpposing }
   }
 
   if (effect.type === 'weaken-opponent-bow') {
-    const target = findStrongestCard(opposingRows, (item) => item.cardType === 'bow')
+    const target = findStrongestCard(opposingRows, (item) => item.cardType === 'bow' && !item.immune)
     return target ? { ...state, [opposingRowsKey]: addBonusToCard(opposingRows, target.row, target.cardId, -effect.amount) } : state
   }
 
@@ -365,12 +379,13 @@ function applyOneEffect(state, card, targetRow, owner, effect) {
   }
 
   if (effect.type === 'damage-strongest') {
-    const target = findStrongestCard(opposingRows, () => true)
+    // ponytail: Last Escape — targeted weakenings skip immune cards, retargeting or fizzling through existing no-op paths
+    const target = findStrongestCard(opposingRows, (card) => !card.immune)
     return target ? { ...state, [opposingRowsKey]: addBonusToCard(opposingRows, target.row, target.cardId, -effect.amount) } : state
   }
 
   if (effect.type === 'damage-random-opponent') {
-    const pool = ROWS.flatMap((row) => opposingRows[row].map((card) => ({ row, cardId: card.id })))
+    const pool = ROWS.flatMap((row) => opposingRows[row].filter((card) => !card.immune).map((card) => ({ row, cardId: card.id })))
     if (pool.length === 0) return state
     // ponytail: uniform pick via partial Fisher-Yates would avoid full-shuffle cost; pool is tiny (<= hand size), Math.random matches opponent.js idiom
     const shuffled = [...pool].sort(() => Math.random() - 0.5)
@@ -397,7 +412,7 @@ function applyOneEffect(state, card, targetRow, owner, effect) {
 
   if (effect.type === 'damage-all-opponents') {
     // ponytail: army-wide weaken (Moreau acid rain) — per-card loop unnecessary, map rows directly
-    const nextOpposing = Object.fromEntries(ROWS.map((row) => [row, (opposingRows[row] ?? []).map((foe) => ({ ...foe, bonus: (foe.bonus ?? 0) - effect.amount }))]))
+    const nextOpposing = Object.fromEntries(ROWS.map((row) => [row, (opposingRows[row] ?? []).map((foe) => foe.immune ? foe : ({ ...foe, bonus: (foe.bonus ?? 0) - effect.amount }))]))
     return { ...state, [opposingRowsKey]: nextOpposing }
   }
 
@@ -542,6 +557,25 @@ export function activateLeaderAbility(state) {
     })]))
     if (!advanced) return { ...state, error: 'There are no mutation cards ready to evolve.' }
     return detonateWeakened(evolveWeakened({ ...state, playerRows, leaderUsed: true, error: '' }, 'opponentRows'), 'opponentRows')
+  }
+
+  // ponytail: HUNK calls in Alpha Team — copies carry instance ids (GameRow keys on card.id) and enter silent: no deploy effects, no calibration; inert placement needs no resolution pass
+  if (effect.type === 'deploy-ally') {
+    const template = cards.find((card) => card.id === effect.cardId)
+    if (!template || !ROWS.includes(effect.row)) return { ...state, error: 'The requested reinforcement is unavailable.' }
+    const alongside = effect.presenceBonus && Object.values(state.playerRows).flat().some((card) => card.id === effect.presenceBonus.cardId)
+    const count = (effect.count ?? 0) + (alongside ? effect.presenceBonus.extra ?? 0 : 0)
+    const playerRows = cloneRows(state.playerRows)
+    for (let i = 0; i < count; i += 1) playerRows[effect.row].push({ ...template, id: `${template.id}~${i + 1}` })
+    return { ...state, playerRows, leaderUsed: true, error: '' }
+  }
+
+  // ponytail: Leon refuses the debuff — negative card bonuses wiped, positive buffs kept, row auras untouched (card-scoped by spec)
+  if (effect.type === 'cleanse-allies') {
+    const debuffed = Object.values(state.playerRows).flat().some((card) => (card.bonus ?? 0) < 0)
+    if (!debuffed) return { ...state, error: 'There are no debuffs to remove.' }
+    const playerRows = Object.fromEntries(ROWS.map((row) => [row, (state.playerRows[row] ?? []).map((card) => (card.bonus ?? 0) < 0 ? { ...card, bonus: 0 } : card)]))
+    return { ...state, playerRows, leaderUsed: true, error: '' }
   }
 
   const targetRow = effect.type === 'weaken-highest-opponent-row' ? findHighestScoreRow(state.opponentRows, state.opponentRowBonuses) : effect.type === 'boost-highest-row' ? findHighestScoreRow(state.playerRows, state.playerRowBonuses) : findLowestScoreRow(state.playerRows, state.playerRowBonuses)
