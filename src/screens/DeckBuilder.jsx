@@ -9,10 +9,12 @@ import ScreenShell from '../components/layout/ScreenShell'
 import { cards, factions, leaders, origins, entries, cardTypes, organizations } from '../data/catalog.js'
 import { filterCards, getCardView, getFilterOptions, getLeaderView } from '../data/catalogQueries.js'
 import { rowOptions } from '../data/rows.js'
+import { getDecks, putDeck } from '../api/client.js'
 
 const MIN_DECK_SIZE = 3
 const MAX_DECK_SIZE = 25
 const STORAGE_KEY = 'resigwent-evil-loadout'
+const SERVER_DECK_NAME = 'default'
 const DIFFICULTY_IDS = new Set(['recruit', 'veteran', 'nemesis'])
 
 function getDefaultLeaderId(factionId) {
@@ -24,24 +26,38 @@ function getStarterDeckIds(factionId) {
   return cards.filter((card) => card.factionId === factionId).slice(0, MIN_DECK_SIZE).map((card) => card.id)
 }
 
+function validateLoadout(saved) {
+  const factionId = factions.some((faction) => faction.id === saved?.factionId) ? saved.factionId : factions[0].id
+  const validDeckIds = Array.isArray(saved?.deckIds)
+    ? [...new Set(saved.deckIds)].filter((id) => cards.some((card) => card.id === id && card.factionId === factionId)).slice(0, MAX_DECK_SIZE)
+    : []
+  const factionLeaders = leaders.filter((leader) => leader.factionId === factionId)
+  const validLeaderId = factionLeaders.some((leader) => leader.id === saved?.leaderId && leader.isSelectable)
+    ? saved.leaderId
+    : factionLeaders.find((leader) => leader.isDefault && leader.isSelectable)?.id
+  const difficulty = DIFFICULTY_IDS.has(saved?.difficulty) ? saved.difficulty : 'veteran'
+
+  return { factionId, deckIds: validDeckIds, leaderId: validLeaderId, difficulty }
+}
+
 function getSavedLoadout() {
   if (typeof window === 'undefined') return null
 
   try {
-    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY))
-    const factionId = factions.some((faction) => faction.id === saved?.factionId) ? saved.factionId : factions[0].id
-    const validDeckIds = Array.isArray(saved?.deckIds)
-      ? [...new Set(saved.deckIds)].filter((id) => cards.some((card) => card.id === id && card.factionId === factionId)).slice(0, MAX_DECK_SIZE)
-      : []
-    const factionLeaders = leaders.filter((leader) => leader.factionId === factionId)
-    const validLeaderId = factionLeaders.some((leader) => leader.id === saved?.leaderId && leader.isSelectable)
-      ? saved.leaderId
-      : factionLeaders.find((leader) => leader.isDefault && leader.isSelectable)?.id
-    const difficulty = DIFFICULTY_IDS.has(saved?.difficulty) ? saved.difficulty : 'veteran'
-
-    return { factionId, deckIds: validDeckIds, leaderId: validLeaderId, difficulty }
+    return validateLoadout(JSON.parse(window.localStorage.getItem(STORAGE_KEY)))
   } catch {
     return null
+  }
+}
+
+// Fresh-device signal, read before the autosave effect below writes the key.
+function hasLocalLoadout() {
+  if (typeof window === 'undefined') return true
+
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) != null
+  } catch {
+    return true
   }
 }
 
@@ -59,6 +75,8 @@ function DeckBuilder({ onBack, onStartMatch }) {
   const [row, setRow] = useState('all')
   const [sort, setSort] = useState('default')
   const [saveMessage, setSaveMessage] = useState('')
+  // ponytail: captured before the autosave effect below writes the key, so a fresh device still restores from the server.
+  const [hadLocalLoadout] = useState(hasLocalLoadout)
 
   const faction = factions.find((item) => item.id === selectedFactionId) ?? factions[0]
   const factionLeaders = leaders.filter((leader) => leader.factionId === selectedFactionId)
@@ -104,6 +122,33 @@ function DeckBuilder({ onBack, onStartMatch }) {
     persistLoadout()
   })
 
+  useEffect(() => {
+    // Restore-only: a fresh device hydrates from the server deck once; live local state always wins.
+    if (hadLocalLoadout) return undefined
+    let cancelled = false
+    getDecks()
+      .then((decks) => {
+        if (cancelled) return
+        const remote = decks.find((deck) => deck.name === SERVER_DECK_NAME)
+        if (!remote) return
+        const validated = validateLoadout({
+          factionId: remote.faction_id,
+          leaderId: remote.leader_id,
+          deckIds: remote.card_ids,
+          difficulty: remote.difficulty,
+        })
+        setSelectedFactionId(validated.factionId)
+        setSelectedLeaderId(validated.leaderId)
+        setDeckIds(validated.deckIds.length ? validated.deckIds : getStarterDeckIds(validated.factionId))
+        setDifficulty(validated.difficulty)
+        setSaveMessage('Loadout restored from server.')
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [hadLocalLoadout])
+
   function handleFactionChange(nextFactionId) {
     const nextLeader = leaders.find((item) => item.factionId === nextFactionId && item.isDefault && item.isSelectable)
       ?? leaders.find((item) => item.factionId === nextFactionId && item.isSelectable)
@@ -134,13 +179,27 @@ function DeckBuilder({ onBack, onStartMatch }) {
     setSaveMessage('')
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (deckIds.length < MIN_DECK_SIZE) {
       setSaveMessage(`Add at least ${MIN_DECK_SIZE} cards before saving.`)
       return
     }
 
-    setSaveMessage(persistLoadout() ? `Loadout saved locally with ${deckIds.length} cards.` : 'Unable to save this loadout in the current browser session.')
+    if (!persistLoadout()) {
+      setSaveMessage('Unable to save this loadout in the current browser session.')
+      return
+    }
+    try {
+      await putDeck(SERVER_DECK_NAME, {
+        faction_id: selectedFactionId,
+        leader_id: selectedLeaderId,
+        card_ids: deckIds,
+        difficulty,
+      })
+      setSaveMessage(`Loadout saved with ${deckIds.length} cards (server + local).`)
+    } catch {
+      setSaveMessage(`Loadout saved locally with ${deckIds.length} cards.`)
+    }
   }
 
   function handleStartMatch() {

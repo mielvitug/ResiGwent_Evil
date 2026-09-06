@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Button from '../components/ui/Button'
 import { cards } from '../data/catalog.js'
 import { menuArtwork } from '../data/menuArtManifest.js'
-import { loadMatchLog } from '../log/matchLog.js'
+import { loadMatchLog, pullMatchLog } from '../log/matchLog.js'
 import { shuffleDeck } from '../utils/shuffleDeck.js'
 
 const menuItems = [
@@ -23,7 +23,7 @@ function warmDecode(artwork) {
 
 function MainMenu({ onNavigate }) {
   const firstButtonRef = useRef(null)
-  const [matchLog] = useState(loadMatchLog)
+  const [matchLog, setMatchLog] = useState(loadMatchLog)
   const collageRows = useMemo(() => {
     // ponytail: rarity lookup keeps catalog borders; unreferenced folder art falls back to common
     const rarityByArt = new Map()
@@ -40,6 +40,19 @@ function MainMenu({ onNavigate }) {
 
   useEffect(() => {
     firstButtonRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    // Restore-only: an empty device fills its log from the server once.
+    let cancelled = false
+    pullMatchLog()
+      .then((entries) => {
+        if (!cancelled && entries) setMatchLog(entries)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (

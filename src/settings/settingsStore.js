@@ -1,3 +1,5 @@
+import { getSettings, putSettings } from '../api/client.js'
+
 const STORAGE_KEY = 'resigwent-evil-settings'
 
 export const defaultSettings = {
@@ -45,6 +47,29 @@ export function saveSettings(settings) {
   } catch {
     // Storage unavailable; settings remain session-scoped.
   }
+  // ponytail: server is the backup copy; never blocks the UI.
+  putSettings(settings).catch(() => {})
+}
+
+// Restore-only: server settings fill an empty device. A present local copy
+// always wins (per-device preferences), so this never clobbers live state.
+export async function pullSettings() {
+  if (typeof window === 'undefined') return null
+
+  let hasLocal = true
+  try {
+    hasLocal = window.localStorage.getItem(STORAGE_KEY) != null
+  } catch {
+    return null
+  }
+  if (hasLocal) return null
+  const merged = sanitizeSettings(await getSettings())
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
+  } catch {
+    // Storage unavailable; settings remain session-scoped.
+  }
+  return merged
 }
 
 export function requestFullscreen(enabled) {
