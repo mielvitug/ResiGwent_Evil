@@ -1,0 +1,106 @@
+/* ============================================================
+   MUSIC PLAYER — fixed bottom-right audio widget
+   ============================================================ */
+.music-player {
+  background: rgba(18, 22, 19, 0.92);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  bottom: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  font: 0.82rem var(--font-body);
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  position: fixed;
+  right: var(--space-md);
+  z-index: 1000;
+}
+
+.music-player__row {
+  align-items: center;
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.music-player__note {
+  color: var(--color-accent);
+  font-size: 1.1rem;
+}
+
+.music-player__track {
+  color: var(--color-text-bright);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.music-player__controls {
+  display: flex;
+  gap: 4px;
+}
+
+.music-player__btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.9rem;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.music-player__btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.music-player__volume {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.music-player__vol-icon {
+  font-size: 0.8rem;
+}
+
+.music-player__slider {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  height: 4px;
+  width: 100%;
+}
+
+.music-player__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: var(--color-accent);
+  border-radius: 50%;
+  height: 12px;
+  width: 12px;
+}
+
+.music-player__slider::-moz-range-thumb {
+  background: var(--color-accent);
+  border-radius: 50%;
+  border: none;
+  height: 12px;
+  width: 12px;
+}
+
+@media (max-width: 767px) {
+  .music-player {
+    bottom: var(--space-sm);
+    right: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .music-player__track {
+    max-width: 90px;
+  }
+}

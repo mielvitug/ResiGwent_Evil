@@ -1,0 +1,15 @@
+export const organizations = [
+  { id: 'rpd', name: 'Raccoon City Police Department', uiName: 'Raccoon City Police Department (R.P.D.)', shortName: 'R.P.D.', factionId: 'counterforce' },
+  { id: 'bsaa', name: 'Bioterrorism Security Assessment Alliance', uiName: 'Bioterrorism Security Assessment Alliance (B.S.A.A.)', shortName: 'B.S.A.A.', factionId: 'counterforce' },
+  { id: 'dso', name: 'Division of Security Operations', uiName: 'Division of Security Operations (D.S.O.)', shortName: 'D.S.O.', factionId: 'counterforce' },
+  { id: 'fbi', name: 'Federal Bureau of Investigation', uiName: 'Federal Bureau of Investigation (F.B.I.)', shortName: 'F.B.I.', factionId: 'counterforce' },
+  { id: 'us-government', name: 'United States Government', uiName: 'United States Government', shortName: 'U.S. GOV', factionId: 'counterforce' },
+  { id: 'spy', name: 'Independent Operatives', uiName: 'Independent Operatives', shortName: 'SPY', factionId: 'counterforce' },
+  { id: 'umbrella', name: 'Umbrella Corporation', uiName: 'Umbrella Corporation', shortName: 'UMBRELLA', factionId: 'bioterrorism' },
+  { id: 'los-iluminados', name: 'Los Iluminados', uiName: 'Los Iluminados', shortName: 'ILUMINADOS', factionId: 'bioterrorism' },
+  { id: 'connections', name: 'The Connections', uiName: 'The Connections', shortName: 'CONNECTIONS', factionId: 'bioterrorism' },
+  { id: 'merchant', name: 'The Merchant', uiName: 'The Merchant', shortName: 'MERCHANT', factionId: 'counterforce' },
+  { id: 'duke-emporium', name: "The Duke's Emporium", uiName: "The Duke's Emporium", shortName: 'DUKE', factionId: 'counterforce' },
+  { id: 'kendo-gunshop', name: "Kendo's Gunshop", uiName: "Kendo's Gunshop", shortName: 'GUNSHOP', factionId: 'counterforce' },
+  { id: 'captured-umbrella', name: 'Captured Umbrella', uiName: 'Captured Umbrella (Umbrella)', shortName: 'UMBRELLA', factionId: 'counterforce' },
+]

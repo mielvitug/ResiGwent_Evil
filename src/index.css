@@ -1,0 +1,71 @@
+:root {
+  --color-background: #101311;
+  --color-surface: #1b211d;
+  --color-surface-raised: #242c26;
+  --color-primary: #a92f34;
+  --color-primary-light: #d95750;
+  --color-accent: #d6b36a;
+  --color-text: #d9d8cd;
+  --color-text-bright: #f2eee4;
+  --color-text-muted: #8c9289;
+  --color-line: #3b463c;
+  --color-grid: rgba(214, 179, 106, 0.13);
+
+  --color-faction-counterforce: #4a9e8e;
+  --color-faction-bioterrorism: var(--color-primary);
+
+  --font-display: "Arial Narrow", Impact, sans-serif;
+  --font-heading: "Trebuchet MS", Arial, sans-serif;
+  --font-body: system-ui, "Segoe UI", sans-serif;
+  --font-caption: system-ui, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  --space-xs: 4px;
+  --space-sm: 9px;
+  --space-md: 18px;
+  --space-lg: 26px;
+  --space-xl: 44px;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  --dur-fast: 150ms;
+  --dur-med: 180ms;
+  --dur-slow: 300ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --shadow-overlay: 0 18px 80px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  color: var(--color-text);
+  background: var(--color-background);
+  font: 17.5px/1.55 var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-background);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button {
+  font: inherit;
+}
+
+html[data-animations='off'] *,
+html[data-animations='off'] *::before,
+html[data-animations='off'] *::after {
+  transition: none !important;
+  animation: none !important;
+}
