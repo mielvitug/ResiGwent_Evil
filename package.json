@@ -10,9 +10,12 @@
     "prebuild": "node scripts/generate-menu-art.js",
     "test": "node --test src/data/catalog.test.js src/game/gameRules.test.js src/audio/audioEngine.test.js",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/server.js"
   },
   "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
