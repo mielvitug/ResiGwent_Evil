@@ -6,6 +6,7 @@ import {
   ROWS,
   WINS_NEEDED,
   activateLeaderAbility,
+  advanceOpponentOnce,
   confirmMulligan,
   createMatchState,
   evolutionPreview,
@@ -927,6 +928,32 @@ test('row auras still count immune Jill in scoring (documented exception)', () =
   assert.equal(getRowScore([{ power: 6, bonus: 0, immune: true }], -2), 4)
 })
 
+const leonFStages = [
+  { power: 8, artwork: 'Leon_Kennedy_GOV3.png', ability: '"Where\'s everybody going? Bingo?" — US Government Agent: weaken the strongest opposing card by 2.' },
+  { power: 15, artwork: 'Leon_Kennedy_GOV3a.png', ability: '"Where\'s everybody going? Bingo?" — RPG Equipped: 15 power, RPG drawn. Fully transformed.' },
+]
+
+function leonFCard() {
+  return { ...playerCard('leon-f', 8, 'Ranged', { effect: { type: 'damage-strongest', amount: 2 }, evolution: { stages: leonFStages, every: 5, hideStagePill: true, transformedLabel: 'RPG EQUIPPED' } }), evolutionStage: 0, artwork: 'Leon_Kennedy_GOV3.png', ability: leonFStages[0].ability }
+}
+
+test('Federal Agent draws his RPG at turn 5, spiking to 15 power', () => {
+  const cards = ['a1', 'a2', 'a3', 'a4', 'a5'].map((id) => playerCard(id, 4, 'Melee'))
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards }),
+    playerRows: { Melee: [], Ranged: [leonFCard()], Siege: [] },
+  }
+  const play = (state, id) => resolveOpponentTurn(playPlayerCard(state, id, 'Melee'))
+
+  const afterFifth = play(play(play(play(play(match, 'a1'), 'a2'), 'a3'), 'a4'), 'a5')
+  assert.equal(afterFifth.evolutionClock, 5)
+  const rpg = afterFifth.playerRows.Ranged.find((card) => card.id === 'leon-f')
+  assert.equal(rpg.evolutionStage, 1)
+  assert.equal(rpg.power, 15)
+  assert.equal(rpg.artwork, 'Leon_Kennedy_GOV3a.png')
+  assert.equal(rpg.ability, leonFStages[1].ability)
+})
+
 const lucasStages = [
   { power: 7, artwork: 'Lucas_Baker2.webp', ability: '"I\'ve done terrible things...horrible things. I killed your men, I tortured them...and I enjoyed every second, soldier boy!" — Trap: weaken the highest-scoring opposing row by 1. Dormant mutation: transforms after two weakenings.' },
   { power: 13, artwork: 'Lucas_Form2.png', ability: '"Oh boy... So this is what it feels like." — Trap: weaken the highest-scoring opposing row by 1. Fully mutated.' },
@@ -1489,6 +1516,160 @@ test('Leon Federal Agent keeps his ability when there is nothing to cleanse', ()
   assert.equal(next.leaderUsed, false)
 })
 
+test('passing ahead wins the round when the AI cannot overtake', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    playerRows: { Melee: [playerCard('champ', 10, 'Melee'), playerCard('champ2', 10, 'Melee'), playerCard('champ3', 10, 'Melee')], Ranged: [], Siege: [] },
+    opponentRows: { Melee: [], Ranged: [], Siege: [] },
+    opponentHand: [opponentCard('weak', 2, 'Melee')],
+  }
+
+  const finished = finishRound(resolveOpponentTurn(passPlayer(match)))
+
+  assert.equal(finished.result.winner, 'player')
+  assert.equal(finished.playerWins, 1)
+})
+
+test('passing behind loses the round once both sides pass', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    playerRows: { Melee: [playerCard('champ', 10, 'Melee')], Ranged: [], Siege: [] },
+    opponentRows: { Melee: [opponentCard('foe', 20, 'Melee')], Ranged: [], Siege: [] },
+    opponentHand: [],
+  }
+
+  const finished = finishRound(resolveOpponentTurn(passPlayer(match)))
+
+  assert.equal(finished.result.winner, 'opponent')
+})
+
+test('advanceOpponentOnce plays a single card per step', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    turn: 'opponent',
+    playerPassed: true,
+    opponentHand: [opponentCard('solo', 5, 'Melee'), opponentCard('rest', 3, 'Ranged')],
+  }
+  const handSize = match.opponentHand.length
+  const boarded = ROWS.flatMap((row) => match.opponentRows[row]).length
+
+  const stepped = advanceOpponentOnce(match)
+
+  assert.equal(stepped.opponentHand.length, handSize - 1)
+  assert.equal(stepped.opponentPassed, false)
+  assert.equal(ROWS.flatMap((row) => stepped.opponentRows[row]).length, boarded + 1)
+})
+
+test('advanceOpponentOnce banks a spent, leading AI instead of playing', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    turn: 'opponent',
+    playerPassed: true,
+    playerRows: { Melee: [playerCard('mine', 2, 'Melee')], Ranged: [], Siege: [] },
+    opponentRows: { Melee: [opponentCard('theirs', 12, 'Melee')], Ranged: [], Siege: [] },
+    opponentHand: [opponentCard('rest', 3, 'Ranged')],
+  }
+
+  const stepped = advanceOpponentOnce(match)
+
+  assert.equal(stepped.opponentPassed, true)
+  assert.equal(stepped.turn, 'player')
+  assert.equal(stepped.opponentHand.length, 1)
+})
+
+test('advanceOpponentOnce is a no-op once the opponent already passed', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [playerCard('a1', 4, 'Melee')] }),
+    turn: 'player',
+    playerPassed: true,
+    opponentPassed: true,
+  }
+
+  assert.equal(advanceOpponentOnce(match), match)
+})
+
+const ramonStages = [
+  { power: 8, artwork: 'ramon2a.png', ability: '"How convenient. As I was growing tired of the moderate touch. Let us play this game of ours in true Salazar fashion!" — Dormant mutation: transforms when weakened.' },
+  { power: 12, artwork: 'ramon_form.png', ability: '"Allow me to show you the power I have been granted by my master. The power of God! The stage is set for the final act!" — Acid Spit: weaken a random opposing card by 2 on mutation. Hovering Maneuverbility: boost this card by 1 on mutation. Fully mutated.', mutateEffects: [{ type: 'damage-random-opponent', amount: 2, count: 1 }, { type: 'boost-self', amount: 1 }] },
+]
+
+function ramonCard() {
+  return { ...opponentCard('ramon', 8, 'Ranged', { evolution: { stages: ramonStages, trigger: 'when-weakened', formLabels: ['Dormant Form', 'Active Form'] } }), evolutionStage: 0, artwork: 'ramon2a.png', ability: ramonStages[0].ability }
+}
+
+test('one weakening transforms Ramon Salazar and fires both Active Form entry effects', () => {
+  const scorch = playerCard('scorcher-a', 5, 'Melee', { effect: { type: 'damage-strongest', amount: 1 } })
+  const match = {
+    ...readyMatch({ ...playerLoadout, cards: [scorch] }),
+    opponentHand: [],
+    opponentRows: { Melee: [], Ranged: [ramonCard()], Siege: [] },
+  }
+
+  const once = playPlayerCard(match, 'scorcher-a', 'Melee')
+  const active = once.opponentRows.Ranged.find((card) => card.id === 'ramon')
+
+  assert.equal(active.evolutionStage, 1)
+  assert.equal(active.power, 12)
+  assert.equal(active.artwork, 'ramon_form.png')
+  assert.equal(active.ability, ramonStages[1].ability)
+  // weakening -1 absorbed to transform, Hovering +1 nets bonus to 0
+  assert.equal(active.bonus, 0)
+  // Acid Spit lands on the player's card: -2 (the scorcher's own deploy weaken targets Ramon, not itself)
+  const struck = once.playerRows.Melee.find((card) => card.id === 'scorcher-a')
+  assert.equal(struck.bonus, -2)
+})
+
+test('Eveline seizes the whole board when only two foes stand', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'connections-eveline', name: 'Eveline' } }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+    opponentRows: { Melee: [opponentCard('foe-a', 5, 'Melee')], Ranged: [opponentCard('foe-b', 4, 'Ranged')], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  assert.equal(next.error, '')
+  assert.equal(next.opponentRows.Melee.length, 0)
+  assert.equal(next.opponentRows.Ranged.length, 0)
+  assert.equal(next.playerRows.Melee.find((card) => card.id === 'foe-a').power, 5)
+  assert.equal(next.playerRows.Ranged.find((card) => card.id === 'foe-b').power, 4)
+})
+
+test('Eveline seizes 2 to 3 foes from a crowded board without duplicating ids', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'connections-eveline', name: 'Eveline' } }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+    opponentRows: {
+      Melee: [opponentCard('foe-a', 5, 'Melee'), opponentCard('foe-b', 4, 'Melee')],
+      Ranged: [opponentCard('foe-c', 3, 'Ranged'), opponentCard('foe-d', 3, 'Ranged')],
+      Siege: [opponentCard('foe-e', 2, 'Siege')],
+    },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.leaderUsed, true)
+  const taken = ROWS.flatMap((row) => next.playerRows[row]).map((card) => card.id)
+  const left = ROWS.flatMap((row) => next.opponentRows[row]).map((card) => card.id)
+  assert.ok(taken.length >= 2 && taken.length <= 3)
+  assert.equal(taken.length + left.length, 5)
+  assert.equal(new Set([...taken, ...left]).size, 5)
+})
+
+test('Eveline keeps her ability when no foes stand', () => {
+  const match = {
+    ...readyMatch({ ...playerLoadout, leader: { id: 'connections-eveline', name: 'Eveline' } }),
+    playerRows: { Melee: [], Ranged: [], Siege: [] },
+    opponentRows: { Melee: [], Ranged: [], Siege: [] },
+  }
+
+  const next = activateLeaderAbility(match)
+
+  assert.equal(next.error, 'There are no opposing cards to seize.')
+  assert.equal(next.leaderUsed, false)
+})
+
 test('William Birkin leader deploys a silent G-Type to Melee', () => {
   const match = {
     ...readyMatch({ ...playerLoadout, leader: { id: 'umbrella-william-birkin-human', name: 'William Birkin' } }),
@@ -1604,6 +1785,23 @@ test('startNextRound resets the board, draws up to hand limit, and keeps the Lea
   const playerCardsOnBoard = ROWS.reduce((total, row) => total + finished.playerRows[row].length, 0)
   assert.equal(next.playerDrawPile.length + next.playerHand.length + playerCardsOnBoard, playerLoadout.cards.length)
   assert.equal(startNextRound(next).round, 2)
+})
+
+test('Holdout cards are retained across rounds while other cards clear', () => {
+  let match = { ...createMatchState(playerLoadout, opponentLoadout), phase: 'battle' }
+  match = finishRound({
+    ...match,
+    playerRows: { Melee: [playerCard('holder', 4, 'Melee', { holdout: true, bonus: 2 })], Ranged: [playerCard('gone', 3, 'Ranged')], Siege: [] },
+    opponentRows: { Melee: [opponentCard('foe-holder', 3, 'Melee', { holdout: true })], Ranged: [], Siege: [] },
+  })
+  const next = startNextRound(match)
+
+  assert.equal(next.round, 2)
+  const kept = next.playerRows.Melee.find((card) => card.id === 'holder')
+  assert.ok(kept)
+  assert.equal(kept.bonus, 2)
+  assert.equal(next.playerRows.Ranged.length, 0)
+  assert.equal(next.opponentRows.Melee.find((card) => card.id === 'foe-holder').power, 3)
 })
 
 test('the losing side draws one extra card for the next round', () => {

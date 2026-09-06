@@ -12,7 +12,7 @@ import { formatCount } from '../utils/formatCount.js'
 import { shuffleDeck } from '../utils/shuffleDeck.js'
 import { recordMatch } from '../log/matchLog.js'
 import { loadSettings, applyAnimationPreference } from '../settings/settingsStore.js'
-import { ROWS, activateLeaderAbility, confirmMulligan, createMatchState, finishRound, getRowScore, getTotalScore, playPlayerCard, passPlayer, resolveOpponentTurn, startNextRound, toggleMulliganCard } from '../game/gameRules.js'
+import { ROWS, activateLeaderAbility, advanceOpponentOnce, confirmMulligan, createMatchState, finishRound, getRowScore, getTotalScore, playPlayerCard, passPlayer, resolveOpponentTurn, startNextRound, toggleMulliganCard } from '../game/gameRules.js'
 
 function GameBoard({ loadout, onReturn }) {
   const playSfx = useSfx()
@@ -168,13 +168,50 @@ function GameBoard({ loadout, onReturn }) {
 
   function handlePass() {
     if (deploying) return
-    let nextState = resolveOpponentTurn(passPlayer(game))
-    setJustDeployedIds((ids) => [...ids, ...tagNewcomers(game, nextState), ...tagEvolved(game, nextState)].slice(-8))
+    const before = gameRef.current
+    const passed = passPlayer(before)
+    if (passed === before) return
+    setGame(passed)
+    playSfx('pass')
+    if (passed.opponentPassed) {
+      // ponytail: AI already banked earlier — nothing to play out, resolve immediately
+      const finished = finishRound(passed)
+      if (finished.result) setPendingCard(null)
+      setGame(finished)
+      return
+    }
+    queueOpponentStep()
+  }
 
-    if (nextState.playerPassed && nextState.opponentPassed) nextState = finishRound(nextState)
-    else playSfx('pass')
-    if (nextState.result) setPendingCard(null)
-    setGame(nextState)
+  function queueOpponentStep() {
+    // ponytail: the AI answers one card per beat (Gwent-like reveal) instead of resolving its whole post-pass turn at once
+    setDeploying({ side: 'opponent', cardId: null })
+    later(aiDeployMs, () => {
+      const before = gameRef.current
+      if (before.result) {
+        setDeploying(null)
+        return
+      }
+      if (before.opponentPassed) {
+        const finished = finishRound(before)
+        setDeploying(null)
+        if (finished.result) setPendingCard(null)
+        setGame(finished)
+        return
+      }
+      const next = advanceOpponentOnce(before)
+      setJustDeployedIds((ids) => [...ids, ...tagNewcomers(before, next), ...tagEvolved(before, next)].slice(-8))
+      if (next.opponentPassed) {
+        const finished = finishRound(next)
+        setDeploying(null)
+        if (finished.result) setPendingCard(null)
+        setGame(finished)
+        return
+      }
+      playSfx('deploy')
+      setGame(next)
+      queueOpponentStep()
+    })
   }
 
   function handleLeaderAbility() {

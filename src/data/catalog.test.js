@@ -96,7 +96,7 @@ test('DSO and FBI launch with starter cards', () => {
   const fbiCards = cards.filter((card) => card.organizationId === 'fbi')
 
   assert.ok(dsoCards.length >= 4)
-  assert.ok(dsoCards.some((card) => card.name === 'Leon S. Kennedy - Agent'))
+  assert.ok(dsoCards.some((card) => card.name === 'Leon S. Kennedy - D.S.O Agent'))
   assert.ok(leaders.some((leader) => leader.id === 'dso-leon-kennedy-requiem' && leader.organizationId === 'dso' && leader.residentEvilEntryId === 're9-requiem'))
   assert.ok(leaders.some((leader) => leader.id === 'fbi-leon-kennedy-re4' && leader.organizationId === 'fbi' && leader.residentEvilEntryId === 're4'))
   assert.ok(dsoCards.some((card) => card.name === 'Helena Harper' && card.residentEvilEntryId === 're6'))
@@ -223,4 +223,5 @@ test('unit extras survive catalog assembly (effects, recurring, hideTypeChip)', 
   assert.ok((saddler.effects ?? []).some((effect) => effect.type === 'boost-allied-origin'))
   const sturm = cards.find((card) => card.id.endsWith('sturm'))
   assert.ok(sturm.recurring)
+  assert.equal(cards.find((card) => card.id === 'bsaa-chris-bsaa-card').holdout, true)
 })

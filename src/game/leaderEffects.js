@@ -13,7 +13,7 @@ export const leaderEffects = {
   'illuminados-saddler': { type: 'weaken-highest-opponent-row', amount: 2 },
   'illuminados-krauser': { type: 'boost-highest-row', amount: 3 },
   'illuminados-salazar': { type: 'weaken-highest-opponent-row', amount: 3 },
-  'connections-eveline': { type: 'weaken-highest-opponent-row', amount: 2 },
+  'connections-eveline': { type: 'seize-random-enemies', min: 2, max: 3 },
   'connections-mother-miranda-leader': { type: 'boost-highest-row', amount: 3 },
   'connections-victor-gideon': { type: 'advance-trigger-evolutions' },
 }

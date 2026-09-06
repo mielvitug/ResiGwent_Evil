@@ -485,18 +485,23 @@ export function playOpponentTurn(state) {
   return { ...resolved, opponentRows: calibrateWeakening(resolved.opponentRows, resolved.opponentRowBonuses, card.row, card.id) }
 }
 
+export function advanceOpponentOnce(state) {
+  if (state.phase !== 'battle' || state.result || state.opponentPassed) return state
+  if (!state.playerPassed) return playOpponentTurn({ ...state, turn: 'opponent' })
+  const profile = aiProfile(state)
+  if (aiLead(state) >= profile.bankLead && state.opponentHand.length <= profile.bankHandMax) {
+    return passTurnToPlayer({ ...state, opponentPassed: true, turn: 'player', error: '' })
+  }
+  return playOpponentTurn({ ...state, turn: 'opponent' })
+}
+
 export function resolveOpponentTurn(state) {
   if (state.phase !== 'battle' || state.result || state.opponentPassed || state.turn !== 'opponent') return state
-
   if (!state.playerPassed) return playOpponentTurn(state)
 
   let nextState = state
-  const profile = aiProfile(state)
   while (nextState.playerPassed && !nextState.opponentPassed) {
-    if (aiLead(nextState) >= profile.bankLead && nextState.opponentHand.length <= profile.bankHandMax) {
-      return passTurnToPlayer({ ...nextState, opponentPassed: true, turn: 'player', error: '' })
-    }
-    nextState = playOpponentTurn({ ...nextState, turn: 'opponent' })
+    nextState = advanceOpponentOnce(nextState)
   }
 
   return nextState
@@ -578,6 +583,26 @@ export function activateLeaderAbility(state) {
     return { ...state, playerRows, leaderUsed: true, error: '' }
   }
 
+  // ponytail: Eveline seizes random foes to your side, keeping their row (ids travel, stay unique — no instance-id problem); scores move with the cards, no resolution pass needed
+  if (effect.type === 'seize-random-enemies') {
+    const pool = ROWS.flatMap((row) => (state.opponentRows[row] ?? []).map((card) => ({ row, id: card.id })))
+    if (pool.length === 0) return { ...state, error: 'There are no opposing cards to seize.' }
+    const min = effect.min ?? 1
+    const max = effect.max ?? min
+    const count = Math.min(pool.length, min + Math.floor(Math.random() * (max - min + 1)))
+    const takenIds = new Set([...pool].sort(() => Math.random() - 0.5).slice(0, count).map((slot) => slot.id))
+    const seizedRows = cloneRows(state.playerRows)
+    const opponentRows = Object.fromEntries(ROWS.map((row) => {
+      const staying = []
+      for (const card of state.opponentRows[row] ?? []) {
+        if (takenIds.has(card.id)) seizedRows[row].push(card)
+        else staying.push(card)
+      }
+      return [row, staying]
+    }))
+    return { ...state, playerRows: seizedRows, opponentRows, leaderUsed: true, error: '' }
+  }
+
   const targetRow = effect.type === 'weaken-highest-opponent-row' ? findHighestScoreRow(state.opponentRows, state.opponentRowBonuses) : effect.type === 'boost-highest-row' ? findHighestScoreRow(state.playerRows, state.playerRowBonuses) : findLowestScoreRow(state.playerRows, state.playerRowBonuses)
 
   if (effect.type === 'weaken-highest-opponent-row' && !targetRow) return { ...state, error: 'There are no opposing cards available for this ability.' }
@@ -629,6 +654,9 @@ export function finishRound(state) {
 export function startNextRound(state) {
   if (!state.result || state.matchResult) return state
 
+  // ponytail: Holdout cards (Wolf Squad) survive the reset in place, state intact; everything else clears per-round
+  const retainRows = (rows) => Object.fromEntries(ROWS.map((row) => [row, (rows[row] ?? []).filter((card) => card.holdout)]))
+
   const winner = state.result.winner
   const playerDrawCount = DRAW_PER_ROUND + (winner === 'opponent' || winner === 'draw' ? 1 : 0)
   const opponentDrawCount = DRAW_PER_ROUND + (winner === 'player' || winner === 'draw' ? 1 : 0)
@@ -644,8 +672,8 @@ export function startNextRound(state) {
     playerDrawPile: playerDraw.drawPile,
     opponentHand: opponentDraw.hand,
     opponentDrawPile: opponentDraw.drawPile,
-    playerRows: createRows(),
-    opponentRows: createRows(),
+    playerRows: retainRows(state.playerRows),
+    opponentRows: retainRows(state.opponentRows),
     playerRowBonuses: createRowValues(),
     opponentRowBonuses: createRowValues(),
     playerPassed: false,
