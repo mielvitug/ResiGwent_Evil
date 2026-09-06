@@ -8,7 +8,7 @@
     "predev": "node scripts/generate-menu-art.js",
     "build": "vite build",
     "prebuild": "node scripts/generate-menu-art.js",
-    "test": "node --test src/data/catalog.test.js src/game/gameRules.test.js src/audio/audioEngine.test.js",
+    "test": "node --test src/data/catalog.test.js src/game/gameRules.test.js src/audio/audioEngine.test.js server/server.test.js",
     "lint": "oxlint",
     "preview": "vite preview",
     "server": "node server/server.js"
