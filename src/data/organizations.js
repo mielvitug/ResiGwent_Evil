@@ -12,5 +12,6 @@ export const organizations = [
   { id: 'duke-emporium', name: "The Duke's Emporium", uiName: "The Duke's Emporium", shortName: 'DUKE', factionId: 'counterforce' },
   { id: 'kendo-gunshop', name: "Kendo's Gunshop", uiName: "Kendo's Gunshop", shortName: 'GUNSHOP', factionId: 'counterforce' },
   { id: 'captured-umbrella', name: 'Captured Umbrella', uiName: 'Captured Umbrella (Umbrella)', shortName: 'UMBRELLA', factionId: 'counterforce' },
+  { id: 'ubcs-remnants', name: 'U.B.C.S. Remnants', uiName: 'U.B.C.S. Remnants', shortName: 'U.B.C.S.', factionId: 'counterforce' },
   { id: 'the-organization', name: 'The Organization', uiName: 'The Organization', shortName: 'ORG', factionId: 'bioterrorism' },
 ]

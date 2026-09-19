@@ -1,5 +1,4 @@
 import Button from '../ui/Button'
-import Icon from '../ui/Icon'
 
 function LeaderPanel({ leader, used, onUse, disabled }) {
   return (

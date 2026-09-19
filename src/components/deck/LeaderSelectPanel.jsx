@@ -1,11 +1,14 @@
 import FilterControl from '../filters/FilterControl'
-import LeaderTile from '../cards/LeaderTile'
 import { getFilterOptions, getLeaderView } from '../../data/catalogQueries.js'
 import { leaders } from '../../data/catalog.js'
 
 function LeaderSelectPanel({ factions, factionId, leaderId, onFactionChange, onLeaderChange }) {
   const factionLeaders = leaders.filter((leader) => leader.factionId === factionId)
   const selectedLeader = getLeaderView(factionLeaders.find((leader) => leader.id === leaderId) ?? factionLeaders[0])
+  const leaderOptions = {
+    options: factionLeaders.map((leader) => leader.id),
+    optionLabels: Object.fromEntries(factionLeaders.map((leader) => [leader.id, `${leader.name} — ${leader.version}`])),
+  }
 
   return (
     <section className="leader-select-panel" aria-labelledby="leader-select-title">
@@ -14,10 +17,11 @@ function LeaderSelectPanel({ factions, factionId, leaderId, onFactionChange, onL
           <p className="eyebrow">Command</p>
           <h2 id="leader-select-title">Leader</h2>
         </div>
-        <span className={`leader-status${selectedLeader.isSelectable ? '' : ' leader-state--used'}`}>{selectedLeader.isSelectable ? 'READY' : 'TBD'}</span>
       </div>
 
-      <FilterControl label="Main faction" value={factionId} {...getFilterOptions(factions, 'Select faction')} disabledOptions={['all']} onChange={onFactionChange} />
+      <FilterControl label="Select Main Faction" value={factionId} {...getFilterOptions(factions, 'Select faction')} disabledOptions={['all']} onChange={onFactionChange} />
+
+      <FilterControl label="Select Faction Leader" value={selectedLeader.id} {...leaderOptions} disabledOptions={factionLeaders.filter((leader) => !leader.isSelectable).map((leader) => leader.id)} onChange={onLeaderChange} />
 
       <div className="leader-portrait" aria-live="polite">
         <div className="leader-portrait__art" aria-hidden="true">
@@ -39,19 +43,6 @@ function LeaderSelectPanel({ factions, factionId, leaderId, onFactionChange, onL
         </div>
       </div>
 
-      <div className="leader-select-list" role="radiogroup" aria-label="Select leader">
-        {factionLeaders.filter((leader) => leader.id !== leaderId).map((leader) => {
-          const view = getLeaderView(leader)
-          return (
-            <LeaderTile
-              key={leader.id}
-              leader={view}
-              compact
-              onClick={() => leader.isSelectable && onLeaderChange(leader.id)}
-            />
-          )
-        })}
-      </div>
     </section>
   )
 }

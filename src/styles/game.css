@@ -15,33 +15,39 @@
 }
 
 .game-hud {
-  align-items: end;
+  align-items: center;
   border-bottom: 1px solid var(--color-line);
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 1fr auto 1fr;
   margin: 0 auto var(--space-sm);
   padding-bottom: var(--space-md);
 }
 
-.game-hud h1 {
-  color: var(--color-text-bright);
-  font: 700 clamp(1.8rem, 4vw, 3rem)/1 var(--font-heading);
-  margin: var(--space-sm) 0 0;
-  text-transform: uppercase;
+.game-hud > .button {
+  justify-self: start;
+}
+
+.game-hud .title-box {
+  min-width: min(380px, 100%);
 }
 
 .game-hud__status {
   align-items: center;
   display: flex;
   gap: var(--space-sm);
+  justify-self: end;
 }
 
 .turn-indicator {
+  border: 1px solid var(--color-line);
   color: var(--color-text-muted);
   font: 700 0.89rem var(--font-mono);
   letter-spacing: 0.08em;
-  margin-right: var(--space-md);
+  margin-right: 0;
+  padding: 10px 16px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .turn-indicator--active {
@@ -86,6 +92,7 @@ html[data-animations='off'] .turn-indicator--thinking::after {
   color: var(--color-text-muted);
   font: 700 0.83rem var(--font-mono);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .score-display strong {
@@ -239,7 +246,9 @@ html[data-animations='off'] .game-row--hit {
   border-right: 1px solid var(--color-line);
   display: grid;
   gap: 4px;
+  justify-items: center;
   padding: var(--space-sm);
+  text-align: center;
 }
 
 .row-name {
@@ -662,9 +671,19 @@ html[data-animations='off'] .battle-divider span {
 }
 
 .operation-log {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-line);
   border-top: 1px solid var(--color-line);
   margin-top: var(--space-lg);
-  padding-top: var(--space-md);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: var(--space-md);
+  scrollbar-color: var(--color-line) transparent;
+  scrollbar-width: thin;
+}
+
+.operation-log .eyebrow {
+  margin-bottom: var(--space-xs);
 }
 
 .operation-log ul {
@@ -679,7 +698,7 @@ html[data-animations='off'] .battle-divider span {
   align-items: baseline;
   color: var(--color-text-muted);
   display: grid;
-  font-size: 0.79rem;
+  font: 0.79rem var(--font-mono);
   grid-template-columns: 74px minmax(0, 1fr) auto;
   gap: var(--space-sm);
 }
@@ -858,16 +877,24 @@ html[data-animations='off'] .battle-divider span {
 
   .game-hud {
     gap: var(--space-sm);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .game-hud > .button {
+    justify-self: start;
   }
 
   .game-hud__status {
     flex-wrap: wrap;
+    justify-self: center;
     width: 100%;
   }
 
   .turn-indicator {
     flex: 1 0 100%;
     margin: 0;
+    text-align: center;
   }
 
   .score-display {

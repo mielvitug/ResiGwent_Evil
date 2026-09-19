@@ -33,4 +33,5 @@ export const origins = [
   { id: 'duke-emporium', name: "Duke's Emporium", organizationId: 'duke-emporium' },
   { id: 'kendo-gunshop', name: "Kendo's Gunshop", organizationId: 'kendo-gunshop' },
   { id: 'captured-umbrella', name: 'Captured Umbrella', organizationId: 'captured-umbrella' },
+  { id: 'ubcs-remnants', name: 'U.B.C.S. Remnants', organizationId: 'ubcs-remnants' },
 ]

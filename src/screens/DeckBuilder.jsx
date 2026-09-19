@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import Button from '../components/ui/Button'
 import CardGrid from '../components/cards/CardGrid'
 import DeckPanel from '../components/deck/DeckPanel'
 import LeaderSelectPanel from '../components/deck/LeaderSelectPanel'
 import FilterControl from '../components/filters/FilterControl'
 import SearchBar from '../components/filters/SearchBar'
 import ScreenShell from '../components/layout/ScreenShell'
-import { cards, factions, leaders, origins, entries, cardTypes, organizations } from '../data/catalog.js'
+import { cards, factions, leaders, entries, cardTypes, organizations } from '../data/catalog.js'
 import { filterCards, getCardView, getFilterOptions, getLeaderView } from '../data/catalogQueries.js'
 import { rowOptions } from '../data/rows.js'
 import { getDecks, putDeck } from '../api/client.js'
@@ -68,7 +67,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
   const [deckIds, setDeckIds] = useState(savedLoadout?.deckIds?.length ? savedLoadout.deckIds : getStarterDeckIds(savedLoadout?.factionId ?? factions[0].id))
   const [difficulty, setDifficulty] = useState(savedLoadout?.difficulty ?? 'veteran')
   const [search, setSearch] = useState('')
-  const [originGroupId, setOriginGroupId] = useState('all')
   const [organizationId, setOrganizationId] = useState('all')
   const [residentEvilEntryId, setResidentEvilEntryId] = useState('all')
   const [cardType, setCardType] = useState('all')
@@ -82,9 +80,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
   const factionLeaders = leaders.filter((leader) => leader.factionId === selectedFactionId)
   const leader = leaders.find((item) => item.id === selectedLeaderId) ?? factionLeaders[0]
   const factionOrganizations = organizations.filter((organization) => organization.factionId === selectedFactionId)
-  const factionOrigins = organizationId === 'all'
-    ? origins.filter((origin) => factionOrganizations.some((organization) => organization.id === origin.organizationId))
-    : origins.filter((origin) => origin.organizationId === organizationId)
   const factionCards = useMemo(() => cards.filter((card) => card.factionId === selectedFactionId), [selectedFactionId])
   const deckCards = useMemo(() => deckIds.map((id) => factionCards.find((card) => card.id === id)).filter(Boolean).map(getCardView), [deckIds, factionCards])
   const leaderView = getLeaderView(leader)
@@ -93,7 +88,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
     const filtered = filterCards(factionCards, {
       search,
       organizationId,
-      originGroupId,
       residentEvilEntryId,
       cardType,
       row,
@@ -107,7 +101,7 @@ function DeckBuilder({ onBack, onStartMatch }) {
     const sorter = sorters[sort]
 
     return (sorter ? [...filtered].sort(sorter) : filtered).map(getCardView)
-  }, [cardType, factionCards, organizationId, originGroupId, residentEvilEntryId, row, search, sort])
+  }, [cardType, factionCards, organizationId, residentEvilEntryId, row, search, sort])
 
   function persistLoadout() {
     try {
@@ -156,7 +150,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
     setSelectedLeaderId(nextLeader?.id)
     setDeckIds(getStarterDeckIds(nextFactionId))
     setOrganizationId('all')
-    setOriginGroupId('all')
     setResidentEvilEntryId('all')
     setCardType('all')
     setRow('all')
@@ -237,7 +230,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
           <div className="card-filters">
             <SearchBar value={search} onChange={setSearch} />
             <FilterControl label="Organization" value={organizationId} {...getFilterOptions(factionOrganizations, 'All organizations')} onChange={setOrganizationId} />
-            <FilterControl label="Origin / group" value={originGroupId} {...getFilterOptions(factionOrigins, 'All origins')} onChange={setOriginGroupId} />
             <FilterControl label="Entry" value={residentEvilEntryId} {...getFilterOptions(entries, 'All entries')} onChange={setResidentEvilEntryId} />
             <FilterControl label="Card type" value={cardType} {...getFilterOptions(cardTypes, 'All types')} onChange={setCardType} />
             <FilterControl label="Row" value={row} {...rowOptions} onChange={setRow} />

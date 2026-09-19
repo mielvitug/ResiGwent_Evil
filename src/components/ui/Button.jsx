@@ -2,6 +2,7 @@ import Icon from './Icon'
 
 function Button({
   label,
+  children,
   variant = 'primary',
   size = 'large',
   disabled = false,
@@ -36,7 +37,7 @@ function Button({
       {icon && !iconOnly && <Icon name={icon} size={16} />}
       {iconOnly
         ? <Icon name={icon} size={18} />
-        : <span>{label}</span>}
+        : <span>{label ?? children}</span>}
     </button>
   )
 }

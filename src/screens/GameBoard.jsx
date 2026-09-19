@@ -247,7 +247,7 @@ function GameBoard({ loadout, onReturn }) {
           <span>{isPlayer ? 'PLAYER' : 'OPPONENT'}</span>
           <strong className={factionClass}>{faction.shortName ?? faction.uiName ?? faction.name}</strong>
           <small>{formatCount(handCount, 'card')} {isPlayer ? 'in hand' : 'hidden'}</small>
-          <ScoreDisplay label="Total" score={totalScore} tone={faction.id === 'bioterrorism' ? 'bioterrorism' : faction.id === 'counterforce' ? 'counterforce' : isPlayer ? 'player' : 'opponent'} />
+          <ScoreDisplay label="Total score" score={totalScore} tone={faction.id === 'bioterrorism' ? 'bioterrorism' : faction.id === 'counterforce' ? 'counterforce' : isPlayer ? 'player' : 'opponent'} />
         </div>
         <div className="side-rows">
           {rows.map((row) => (
@@ -270,13 +270,13 @@ function GameBoard({ loadout, onReturn }) {
     <>
       <main className="game-board-screen" inert={game.phase === 'mulligan' || game.result}>
       <header className="game-hud">
-        <div>
+        <Button variant="ghost" size="small" icon="close" onClick={onReturn}>Quit to Menu</Button>
+        <div className="title-box">
           <p className="eyebrow">Containment zone / round {game.round} / {game.difficulty}</p>
           <h1>Battle Board</h1>
         </div>
         <div className="game-hud__status" aria-live="polite">
           <span className={`${isPlayerTurn ? 'turn-indicator turn-indicator--active' : 'turn-indicator'}${deploying?.side === 'opponent' ? ' turn-indicator--thinking' : ''}`}>{deploying?.side === 'opponent' ? 'AI deploying' : deploying ? 'Deploying…' : game.playerPassed ? 'You passed' : 'Your turn'}</span>
-          <Button variant="ghost" size="small" icon="close" onClick={onReturn}>Quit to Menu</Button>
         </div>
       </header>
 

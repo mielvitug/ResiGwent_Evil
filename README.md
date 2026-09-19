@@ -1,19 +1,103 @@
-Game here: https://resigwentevil.vercel.app
+An unofficial fan-game spinoff of The Witcher's Gwent-like gameplay, set in the Resident Evil universe.
 
+Working game link here: https://resigwentevil.vercel.app
 
-# React + Vite
+# ResiGwent Evil
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A Gwent-style card battler set in the Resident Evil universe. Build a deck of 3 to 25 cards, then win a best-of-3 match across three combat rows. Made for players first, and for course markers second.
 
-Currently, two official plugins are available:
+## 1. Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+ResiGwent Evil is a tactical card game where Resident Evil characters, creatures, and gear fight across Melee, Ranged, and Siege rows. The problem it solves is simple: a full card game loop (collect, build, battle, review) that runs in the browser with no account and no setup for the player. It is for fans of card battlers and for anyone marking this course.
 
-## React Compiler
+## 2. Setup and installation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+What to install first:
 
-## Expanding the Oxlint configuration
+- Node 20 or newer.
+- PostgreSQL, local or hosted. Any Postgres that gives you a connection string works.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+How to get the code:
+
+```sh
+git clone https://github.com/mielvitug/ResiGwent_evil.git
+cd ResiGwent_evil
+```
+
+How to install dependencies:
+
+```sh
+npm install
+```
+
+Environment and configuration. The app needs exactly one variable. Copy `.env.example` to `.env` and fill in your own connection string. Never commit real credentials. Only placeholders go in the repo:
+
+```sh
+DATABASE_URL=postgresql://user:password@localhost:5432/resigwent
+```
+
+How to set up and seed the database. There is no seed step. The tables (`settings`, `decks`, `matches`) create themselves when the server starts. Cards live in code under `src/data/`, so a fresh database is already a working one.
+
+## 3. How to run it
+
+Required: the game itself.
+
+```sh
+npm run dev
+```
+
+Open `http://localhost:5173`. You should see the Command Center menu with four operations: Play Game, Deck Builder, Collection, Options. On its own this is fully playable, but everything lives in this browser only. Reloads keep your data, other machines never see it.
+
+Recommended: the server, so anything saves.
+
+```sh
+npm run server
+```
+
+This starts the API on port 3001. `GET http://localhost:3001/api/health` should answer `{ok: true, decks: N}`. With it running, finished matches, decks, and settings persist in PostgreSQL instead of local storage.
+
+Checks that should pass before you play:
+
+```sh
+npm test
+npm run build
+```
+
+## 4. Features and usage
+
+The primary flow: pick Play Game, choose a deck in the Deck Builder (3 to 25 cards, max 6 legendaries per organization), survive the mulligan, play three rounds across the rows, and read the result. Finished matches are saved and readable later. Collection reviews every card. Options covers music, effects, fullscreen, animations, and confirm-before-play.
+
+API endpoints (method, path, what each does):
+
+- GET `/api/health` — server plus deck count check.
+- GET `/api/settings` — read saved settings, or null on first run.
+- PUT `/api/settings` — save settings, answers 204 with an empty body.
+- POST `/api/matches` — save a finished match, answers 201 with the saved row.
+- GET `/api/matches` — recent matches with deck names, newest first.
+- GET `/api/decks` — all saved decks, newest first.
+- PUT `/api/decks/:name` — create or replace the named deck.
+- DELETE `/api/decks/:name` — delete the named deck, 404 when missing.
+- GET `/api/stats` — per-side and per-deck win rates.
+
+## 5. Project structure
+
+- `src/screens/` — MainMenu, DeckBuilder, Collection, GameBoard, Options.
+- `src/components/` — cards, deck panels, game rows, filters, UI atoms.
+- `src/data/` — catalog, leaders, factions, origins, balance bands, tests.
+- `src/game/` — rules, opponent logic, leader effects.
+- `src/api/` — client with JSON headers and an 8s timeout.
+- `src/styles/` — base, game, cards-filters-deck, music-player.
+- `server/` — Express app, Postgres pool with auto-created tables, tests.
+- `api/` — Vercel adapter for hosted deploys.
+- `public/images/cards/` — card artwork.
+
+## 6. Screenshots
+
+See the `screenshots/` folder.
+
+## 7. Known issues and next steps
+
+- The test suite sits at 122 passing with 4 known catalog failures. They are tracked, not hidden.
+- Phone layouts are rough. Desktop at 1024px and up is the real target, and small screens are devtools-verified only.
+- There is no seed data by design. Cards ship in code, so player data (decks, matches, settings) is the only thing the database holds.
+- Next: full-trip save verification from the GameBoard screen through `POST /api/matches` with read-back on screen.

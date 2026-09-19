@@ -27,11 +27,15 @@ function DeckPanel({ leader, cards, maxSize, onRemove, difficulty, onDifficultyC
       </div>
 
       <div className="leader-card">
-        <div className="leader-mark" aria-hidden="true">L</div>
-        <div>
+        <div className="leader-thumb" aria-hidden="true">
+          {leader.artwork
+            ? <img className="leader-thumb__image" src={leader.artwork.includes('.') ? `/images/cards/${leader.artwork}` : `/images/cards/${leader.artwork}.png`} alt="" loading="lazy" />
+            : <span className="leader-thumb__initial">{leader.name[0]}</span>}
+        </div>
+        <div className="leader-card__body">
           <p className="card-faction">{leader.factionName} / {leader.version}</p>
-          <strong>{leader.name}</strong>
-          <p><strong>{leader.ability}</strong> {leader.description}</p>
+          <strong className="leader-card__name">{leader.name}</strong>
+          <p className="leader-card__ability"><strong>{leader.ability}</strong> {leader.description}</p>
         </div>
       </div>
 

@@ -25,5 +25,18 @@
     "@vitejs/plugin-react": "^6.0.4",
     "oxlint": "^1.75.0",
     "vite": "^8.2.0"
-  }
+  },
+  "description": "Game here: https://resigwentevil.vercel.app",
+  "main": "vite.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mielvitug/ResiGwent_evil.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mielvitug/ResiGwent_evil/issues"
+  },
+  "homepage": "https://github.com/mielvitug/ResiGwent_evil#readme"
 }

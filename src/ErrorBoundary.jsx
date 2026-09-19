@@ -22,9 +22,7 @@ class ErrorBoundary extends Component {
           <p className="eyebrow">System fault</p>
           <h1>Connection Lost</h1>
           <p>The operation terminated unexpectedly. Command has re-established the uplink.</p>
-          <Button onClick={() => this.setState({ error: null })}>
-            Return to Command Center
-          </Button>
+          <Button label="Return to Command Center" onClick={() => this.setState({ error: null })} />
         </main>
       )
     }

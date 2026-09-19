@@ -225,3 +225,35 @@ test('unit extras survive catalog assembly (effects, recurring, hideTypeChip)', 
   assert.ok(sturm.recurring)
   assert.equal(cards.find((card) => card.id === 'bsaa-chris-bsaa-card').holdout, true)
 })
+
+test('Mia Winters fights for the Baker Family with Chainsaw Swipe', () => {
+  const mia = cards.find((card) => card.id === 'connections-mia-winters')
+  assert.equal(mia.factionId, 'bioterrorism')
+  assert.equal(mia.organizationId, 'connections')
+  assert.equal(mia.originGroupId, 'the-baker-family')
+  assert.equal(mia.power, 6)
+  assert.equal(mia.rarity, 'rare')
+  assert.deepEqual(mia.effect, { type: 'damage-strongest', amount: 2 })
+  assert.equal(getCardView(mia).originGroupName, 'The Baker Family')
+})
+
+test('Sherry Birkin supports from the D.S.O. backline', () => {
+  const sherry = cards.find((card) => card.id === 'counterforce-sherry-birkin')
+  assert.equal(sherry.factionId, 'counterforce')
+  assert.equal(sherry.organizationId, 'dso')
+  assert.equal(sherry.originGroupId, 'dso-agents')
+  assert.equal(sherry.power, 6)
+  assert.equal(sherry.rarity, 'rare')
+  assert.equal(sherry.row, 'Siege')
+  assert.deepEqual(sherry.effect, { type: 'boost-row', amount: 2 })
+})
+
+test('Tyrell Patrick traces the mirror row for U.B.C.S. Remnants', () => {
+  const tyrell = cards.find((card) => card.id === 'counterforce-tyrell-patrick')
+  assert.equal(tyrell.factionId, 'counterforce')
+  assert.equal(tyrell.organizationId, 'ubcs-remnants')
+  assert.equal(tyrell.power, 6)
+  assert.equal(tyrell.rarity, 'uncommon')
+  assert.equal(tyrell.row, 'Ranged')
+  assert.deepEqual(tyrell.effect, { type: 'damage-mirror-row', amount: 1 })
+})

@@ -7,10 +7,11 @@ function ScreenShell({ eyebrow = 'ResiGwent Evil', title, onBack, children }) {
         <button className="back-button" type="button" onClick={onBack}>
           <Icon name="arrow-left" size={16} /> Back
         </button>
-        <div>
+        <div className="title-box">
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
         </div>
+        <span className="title-spacer" aria-hidden="true" />
       </header>
       {children}
     </main>
