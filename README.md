@@ -95,6 +95,12 @@ API endpoints (method, path, what each does):
 
 See the `screenshots/` folder.
 
+![Main menu](screenshots/1_Main_Menu.png)
+![Deck builder](screenshots/2_Deck_Builder.png)
+![Battle board](screenshots/3_Battle_Board.png)
+![Card collection](screenshots/4_Card_Collection.png)
+![Options](screenshots/5_Options.png)
+
 ## 7. Known issues and next steps
 
 - The test suite sits at 122 passing with 4 known catalog failures. They are tracked, not hidden.
