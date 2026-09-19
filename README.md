@@ -1,5 +1,7 @@
 An unofficial fan-game spinoff of The Witcher's Gwent-like gameplay, set in the Resident Evil universe.
 
+Disclaimer: all artwork, images, and music used here belong to CAPCOM. This is a non-commercial fan project, not affiliated with or endorsed by CAPCOM.
+
 Working game link here: https://resigwentevil.vercel.app
 
 # ResiGwent Evil
@@ -30,7 +32,7 @@ How to install dependencies:
 npm install
 ```
 
-Environment and configuration. The app needs exactly one variable. Copy `.env.example` to `.env` and fill in your own connection string. Never commit real credentials. Only placeholders go in the repo:
+Environment and configuration. The app needs exactly one variable. Copy `.env.example` to `.env` and fill in your own connection string:
 
 ```sh
 DATABASE_URL=postgresql://user:password@localhost:5432/resigwent
