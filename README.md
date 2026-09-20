@@ -1,6 +1,6 @@
 An unofficial fan-game spinoff of The Witcher's Gwent-like gameplay, set in the Resident Evil universe.
 
-Disclaimer: all artwork, images, and music used here belong to CAPCOM. This is a non-commercial fan project, not affiliated with or endorsed by CAPCOM.
+Disclaimer: all artwork, images, and music used here belong to CAPCOM. This is a non-commercial fan project, not affiliated with or endorsed by CAPCOM. All original code and content here are all rights reserved, see LICENSE.
 
 Working game link here: https://resigwentevil.vercel.app
 
