@@ -7,26 +7,29 @@
 - [Aug 24] - Counterforce leaders. Added `leaders.js`: Leon across three eras (R.P.D., D.S.O. Agent, U.S. Federal Agent), Jill, Chris, and Wesker, each with a version, ability, description, and artwork slot. Every leader pinned to an entry from `re1` through `re9-requiem`. Validation rejects any leader pointing at an unknown entry.
 - [Aug 24] - Counterforce units and data. Added the unit cards in `catalog.js` with rarity, power, row, and effects, plus the Deck Builder with deck limits 3-25. The structure follows Gwent: three combat rows, round-based play with passing, and deck-building under rarity limits. Abilities carry verbatim character quotes ("WITNESS THE POWER!", "Where's everybody going? Bingo?"), and `loreAffiliation` notes mark where canon bends for gameplay. Validation and search queries went in with the data rather than after, so a bad entry fails loudly at once.
 - [Aug 24] - Tiles before artwork. Built `CardTile`, `CardGrid`, `CardDetail`, and `LeaderTile`, with `SearchBar` and `FilterControl` serving both Deck and Collection. No card images yet, so tiles rendered the initials fallback. The tile anatomy was fixed here and never changed after: art region up top, power pill top-right, IN DECK label top-left, then meta, rarity pill, origin plus type, name, and ability.
-- [Aug 24] - Game. Implemented the rules engine, rows (Melee / Ranged / Siege), opponent logic, leader effects, mulligan and result overlays, and the GameBoard screen. Rarity value bands went into `balance.js` (common 2-10 through legendary 8-13).
+- [Aug 25-28] - Card artwork. Images were edited by hand for each card across four days, file by file, and each one needed an exact path match before its tile swapped from initials to art.
+- [Aug 24] - Game. Implemented the rules engine, rows (Melee / Ranged / Siege), opponent logic, leader effects, mulligan and result overlays, and the GameBoard screen. Rarity value bands went into `src/data/balance.js` (common 2-10 through legendary 8-13).
 - [Aug 24] - Support. Added the settings store, match log, audio engine, and error boundary, so the week ended with a game that runs start to finish without a server.
 
 ### Why
 
 Playable core first. Get the whole game working locally before any backend or polish.
 
-- Every screen opens from the menu, so a player can reach the whole game with no dead ends.
+- Every screen opens from the menu (the match itself launches from Deck Builder), and every screen returns to it, so a player can reach the whole game with no dead ends.
 - A full match (draw cards, play rounds, decide a winner) runs on one machine with no server, so everything later builds on something real instead of promises.
+- Abilities are built from a small set of shared effects, so a new card reuses tested mechanics instead of needing new code.
 
 ### What broke or what I got stuck on
 
 - Leader and unit entries had to agree exactly (entry ids, origin groups, card types) or validation rejected the card.
 - Early ability text mixed quotes and mechanics with no consistent rule for which part gets emphasized.
+- Structure of the app came first, so the design was rough and early spacing and sizing were only drafts.
 
 ### What is left
 
-- Stylesheet polish.
-- Backend persistence.
-- Final card wiring.
+- Stylesheet polish — the game runs, but it doesn't look finished yet.
+- Future backend implementation — progress lives only in this browser, and decks vanish on reload.
+- Final card wiring — the remaining cards still need connecting before they're playable.
 
 ---
 ---
@@ -36,29 +39,31 @@ Playable core first. Get the whole game working locally before any backend or po
 ### What changed this week
 
 - [Aug 31] - Styling. Added the four stylesheets (base, game, cards-filters-deck, music-player) plus the `Icon` set, so buttons, tiles, rows, and overlays finally shared one visual language. `AbilityText` followed on Sep 3 with quote-plus-title segmentation: the leading quote stays muted, every `Title:` bolds in the card's rarity tint.
-- [Aug 25-27] - Card artwork. Images landed across three days, file by file, and each one needed an exact path match before its tile swapped from initials to art.
 - [Sep 5-6] - Menu art. Added the menu art manifest with the collage treatment.
 - [Sep 6] - Characters and mutations. Added Federal Leon, Neptune, Yawn, Duke/Merchant duals, T-501, and the HUNK combat style, alongside Luis Serra, Robert Kendo, Ethan Winters, and Ada Wong, plus leader kits including the Wesker pulse, Jill railgun, and Zeno decay. The evolution mechanics went in with them: staged forms over time, trigger-on-weaken mutations, and entry effects that fire on mutation.
+- [Sep 1-6] - Ability coverage. Continued wiring abilities across the 130+ cards — every card carries ability text, most backed by the shared effect set, so the whole set plays by the same mechanics.
 - [Sep 6] - Backend routes and queries. Built the Express + PostgreSQL layer with 9 routes: `/api/health`, settings GET/PUT, matches POST/GET, decks GET/PUT/DELETE, and `/api/stats`. `POST /api/matches` returns 201 with the saved row. The stats query aggregates per-side win rates with `COUNT(*) FILTER`. Validation rejects bad payloads with 400s before any query runs.
-- [Sep 6] - Deployment and client. Added the Vercel adapter, a self-skipping test suite, `.env` handling (local file ignored, example committed), and a client with JSON headers and an 8s timeout.
+- [Sep 6] - Deployment and client. Added the Vercel adapter (app hosted on Vercel, database hosted on Neon, joined by the DATABASE_URL env var), a self-skipping test suite, `.env` handling (local file ignored, example committed), and a client with JSON headers and an 8s timeout.
 
 ### Why
 
 The game worked, and now it had to save. Reloads keep your data, and hosted acts like local.
 
 - Finished matches, saved decks, and settings live in a database, so closing the browser no longer wipes them.
-- The hosted copy behaves exactly like the local one, so testing at home means testing the real thing.
+- The hosted copy behaves like the local one, so testing at home means testing the real thing.
+- Secrets stay out of git, only an example `.env` is committed, so a fresh clone configures itself without leaking keys.
 
 ### What broke or what I got stuck on
 
 - Startup crash on a missing `DATABASE_URL`. Looked like broken queries. Turned out to be connection setup. Fixed by separating the local `.env` from the server environment variables.
+- A mistyped Postgres function failed at the database instead of in the code, so the typo hid behind a server error.
 - Card artwork volume: dozens of files needing consistent naming and paths before tiles would swap from initials to art.
 - `PUT /api/settings` returns 204 with an empty body, first read as a failure. Empty can mean success.
 
 ### What is left
 
-- Final card wiring (Mia, Sherry, Tyrell).
-- Production build verification.
+- Card reworks and additions. Revise existing cards and keep wiring new ones with artwork, abilities, and effects.
+- Production build verification. Prove the shipped build end to end: every image, route fallback, and bundle lands where the app expects them.
 
 ---
 ---
