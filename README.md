@@ -10,7 +10,7 @@ A Gwent-style card battler set in the Resident Evil universe. Build a deck of 3 
 
 ## 1. Overview
 
-ResiGwent Evil is a tactical card game where Resident Evil characters, creatures, and gear fight across Melee, Ranged, and Siege rows. The problem it solves is simple: a full card game loop (collect, build, battle, review) that runs in the browser with no account and no setup for the player. It is for fans of card battlers and for anyone marking this course.
+ResiGwent Evil is a tactical card game where Resident Evil characters, creatures, and gear fight across Melee, Ranged, and Siege rows. The problem it solves is simple: a full card game loop (collect, build, battle, review) that runs in the browser with no account and no setup for the player. The live game is hosted on Vercel with its PostgreSQL database on Neon. It is for fans of card battlers and for anyone marking this course.
 
 ## 2. Setup and installation
 
