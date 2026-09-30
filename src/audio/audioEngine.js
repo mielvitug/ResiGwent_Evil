@@ -5,7 +5,7 @@ let currentTrack = null
 let isPlaying = false
 let listeners = new Set()
 
-let audioSettings = { sfx: true, sfxVolume: 80, music: true, musicVolume: 10 }
+let audioSettings = { sfx: true, sfxVolume: 80, music: true, musicVolume: 30 }
 
 const PLAYLIST = [
   'The_Drive_re4',

@@ -4,7 +4,7 @@ const STORAGE_KEY = 'resigwent-evil-settings'
 
 export const defaultSettings = {
   music: true,
-  musicVolume: 10,
+  musicVolume: 30,
   sfx: true,
   sfxVolume: 80,
   fullscreen: false,
