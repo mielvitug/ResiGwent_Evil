@@ -5,11 +5,13 @@ let currentTrack = null
 let isPlaying = false
 let listeners = new Set()
 
-let audioSettings = { sfx: true, sfxVolume: 80, music: true, musicVolume: 70 }
+let audioSettings = { sfx: true, sfxVolume: 80, music: true, musicVolume: 10 }
 
 const PLAYLIST = [
   'The_Drive_re4',
   'Jack_55th',
+  'LetsPlay',
+  'mini_game',
 ]
 
 export function getPlaylist() {

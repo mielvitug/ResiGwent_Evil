@@ -161,7 +161,6 @@
 }
 
 .menu-collage {
-  /* ponytail: vw-based tile keeps the wall overfilled at any browser zoom; beyond ~50% zoom-out the 220px clamp runs out — add rows/raise max then */
   --collage-tile: clamp(96px, 6vw, 220px);
   display: flex;
   flex-direction: column;
@@ -198,7 +197,7 @@
   flex: 0 0 var(--collage-tile);
   height: auto;
   object-fit: cover;
-  object-position: 50% 15%;
+  object-position: 50% -5%;
   opacity: 0.65;
   width: var(--collage-tile);
 }
@@ -295,10 +294,18 @@
 }
 
 .wordmark-lockup {
+  background: linear-gradient(180deg, rgba(16, 19, 17, 0.72), rgba(16, 19, 17, 0.6));
+  border: 1px solid rgba(235, 194, 59, 0.829);
+  border-radius: 999px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(242, 238, 228, 0.08);
+  backdrop-filter: blur(3px);
+  box-sizing: border-box;
   margin-inline: auto;
-  max-width: 760px;
+  max-width: 100%;
+  padding: clamp(22px, 3.3vw, 40px) clamp(31px, 5.5vw, 70px);
   position: relative;
   text-align: center;
+  width: max-content;
 }
 
 .wordmark {
@@ -338,6 +345,18 @@
 
 .menu-navigation {
   align-self: center;
+  background:
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) top left / 22px 2px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) top left / 2px 22px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) top right / 22px 2px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) top right / 2px 22px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) bottom left / 22px 2px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) bottom left / 2px 22px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) bottom right / 22px 2px,
+    linear-gradient(rgba(214, 179, 106, 0.55), rgba(214, 179, 106, 0.55)) bottom right / 2px 22px,
+    linear-gradient(180deg, rgba(214, 179, 106, 0.05), transparent 32%),
+    repeating-linear-gradient(0deg, rgba(242, 238, 228, 0.016) 0 1px, transparent 1px 3px);
+  background-repeat: no-repeat;
   justify-self: center;
   max-width: 560px;
   padding: var(--space-xl);

@@ -25,7 +25,6 @@ function GameRow({ rowType, cards, score, isPlayerRow, justDeployedIds = [], evo
       </header>
       <div className="game-row__cards">
         {cards.length > 0 ? cards.map((card) => {
-          // ponytail: cycle cards breathe green at 2 out, ember-orange at 1 out pre-first-fire, gold before later wraps; escalate cards green at 2, gold at 1
           const evolution = card.evolution
           const unevolvedTimed = Boolean(evolution) && !evolution.trigger
           const cycleLen = evolution?.firstAt ?? evolution?.every ?? 2

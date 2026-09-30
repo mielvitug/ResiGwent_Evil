@@ -1,7 +1,6 @@
 const jsonHeaders = { 'content-type': 'application/json' }
 
 async function request(path, options) {
-  // ponytail: 8s cap so a sleeping free-tier backend degrades to the local fallback instead of hanging the UI
   const res = await fetch(path, { ...options, signal: AbortSignal.timeout(8000) })
   if (!res.ok) throw new Error(`${options?.method ?? 'GET'} ${path} -> ${res.status}`)
   if (res.status === 204) return null

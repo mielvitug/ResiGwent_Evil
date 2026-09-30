@@ -5,7 +5,7 @@ import LeaderSelectPanel from '../components/deck/LeaderSelectPanel'
 import FilterControl from '../components/filters/FilterControl'
 import SearchBar from '../components/filters/SearchBar'
 import ScreenShell from '../components/layout/ScreenShell'
-import { cards, factions, leaders, entries, cardTypes, organizations } from '../data/catalog.js'
+import { cards, factions, leaders, entries, organizations } from '../data/catalog.js'
 import { filterCards, getCardView, getFilterOptions, getLeaderView } from '../data/catalogQueries.js'
 import { rowOptions } from '../data/rows.js'
 import { getDecks, putDeck } from '../api/client.js'
@@ -69,11 +69,9 @@ function DeckBuilder({ onBack, onStartMatch }) {
   const [search, setSearch] = useState('')
   const [organizationId, setOrganizationId] = useState('all')
   const [residentEvilEntryId, setResidentEvilEntryId] = useState('all')
-  const [cardType, setCardType] = useState('all')
   const [row, setRow] = useState('all')
   const [sort, setSort] = useState('default')
   const [saveMessage, setSaveMessage] = useState('')
-  // ponytail: captured before the autosave effect below writes the key, so a fresh device still restores from the server.
   const [hadLocalLoadout] = useState(hasLocalLoadout)
 
   const faction = factions.find((item) => item.id === selectedFactionId) ?? factions[0]
@@ -89,7 +87,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
       search,
       organizationId,
       residentEvilEntryId,
-      cardType,
       row,
     })
 
@@ -101,7 +98,7 @@ function DeckBuilder({ onBack, onStartMatch }) {
     const sorter = sorters[sort]
 
     return (sorter ? [...filtered].sort(sorter) : filtered).map(getCardView)
-  }, [cardType, factionCards, organizationId, residentEvilEntryId, row, search, sort])
+  }, [factionCards, organizationId, residentEvilEntryId, row, search, sort])
 
   function persistLoadout() {
     try {
@@ -231,7 +228,6 @@ function DeckBuilder({ onBack, onStartMatch }) {
             <SearchBar value={search} onChange={setSearch} />
             <FilterControl label="Organization" value={organizationId} {...getFilterOptions(factionOrganizations, 'All organizations')} onChange={setOrganizationId} />
             <FilterControl label="Entry" value={residentEvilEntryId} {...getFilterOptions(entries, 'All entries')} onChange={setResidentEvilEntryId} />
-            <FilterControl label="Card type" value={cardType} {...getFilterOptions(cardTypes, 'All types')} onChange={setCardType} />
             <FilterControl label="Row" value={row} {...rowOptions} onChange={setRow} />
             <FilterControl label="Sort" value={sort} options={['default', 'power-desc', 'power-asc', 'name']} optionLabels={{ default: 'Default', 'power-desc': 'Power ↓', 'power-asc': 'Power ↑', name: 'Name A-Z' }} onChange={setSort} />
           </div>

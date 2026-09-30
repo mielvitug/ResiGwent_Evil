@@ -215,7 +215,6 @@ test('fact-checked card assignments preserve canon affiliations', () => {
 })
 
 test('unit extras survive catalog assembly (effects, recurring, hideTypeChip)', () => {
-  // ponytail: regression for the silent unit() drop — Sturm's flame and Saddler's plagas boost vanished in real matches while tests bypassed unit()
   const joe = cards.find((card) => card.id === 'bsaa-joe-baker')
   assert.deepEqual(joe.effect, { type: 'boost-self', amount: 2 })
   assert.deepEqual(joe.recurring, { every: 2, effect: { type: 'damage-random-opponent', amount: 2 } })

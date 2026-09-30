@@ -1,4 +1,3 @@
-// ponytail: no deps, no config — lists the cards folder so the main-menu
 // collage can show every art file, not just catalog-referenced ones.
 // Runs via the predev/prebuild hooks; rerun manually after adding art:
 //   node scripts/generate-menu-art.js

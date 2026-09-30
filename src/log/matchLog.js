@@ -26,7 +26,6 @@ export function recordMatch(entry) {
   if (typeof window === 'undefined') return
 
   writeMatchLog([{ ...entry, at: new Date().toISOString() }, ...loadMatchLog()].slice(0, MAX_ENTRIES))
-  // ponytail: server is the backup copy; the local log stays the live one.
   postMatch(entry).catch(() => {})
 }
 

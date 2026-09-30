@@ -174,7 +174,6 @@ function GameBoard({ loadout, onReturn }) {
     setGame(passed)
     playSfx('pass')
     if (passed.opponentPassed) {
-      // ponytail: AI already banked earlier — nothing to play out, resolve immediately
       const finished = finishRound(passed)
       if (finished.result) setPendingCard(null)
       setGame(finished)
@@ -184,7 +183,6 @@ function GameBoard({ loadout, onReturn }) {
   }
 
   function queueOpponentStep() {
-    // ponytail: the AI answers one card per beat (Gwent-like reveal) instead of resolving its whole post-pass turn at once
     setDeploying({ side: 'opponent', cardId: null })
     later(aiDeployMs, () => {
       const before = gameRef.current

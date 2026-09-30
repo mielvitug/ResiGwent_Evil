@@ -4,7 +4,7 @@ const STORAGE_KEY = 'resigwent-evil-settings'
 
 export const defaultSettings = {
   music: true,
-  musicVolume: 70,
+  musicVolume: 10,
   sfx: true,
   sfxVolume: 80,
   fullscreen: false,
@@ -47,7 +47,6 @@ export function saveSettings(settings) {
   } catch {
     // Storage unavailable; settings remain session-scoped.
   }
-  // ponytail: server is the backup copy; never blocks the UI.
   putSettings(settings).catch(() => {})
 }
 

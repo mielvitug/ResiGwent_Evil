@@ -4,7 +4,6 @@ function AbilityText({ ability }) {
   const quoted = ability.match(/^"([^"]+)"\s*—\s*(.*)$/)
   const remainder = quoted ? quoted[2] : ability
 
-  // ponytail: split rules into titled segments (Title: ...), also breaking before a mid-string "Quote." so quote-title pairs bold each name; single-title cards render exactly as before
   const segments = remainder.split(/\. (?=(?:"[^"]+"\s*—\s*)?[A-Z][^:.]*: )/).map((segment, index, parts) => index < parts.length - 1 ? `${segment}.` : segment)
   if (!segments.some((segment) => segment.indexOf(': ') !== -1)) {
     if (!quoted) return <>{ability}</>
@@ -20,7 +19,6 @@ function AbilityText({ ability }) {
     <>
       {quoted && <><span className="ability-quote">&quot;{quoted[1]}&quot;</span><span className="ability-sep"> — </span></>}
       {segments.map((segment, index) => {
-        // ponytail: quote-prefixed segments ("Quote." — Title: ...) render the quote unbolded, then title-bold as usual
         const quotePrefix = segment.match(/^"([^"]+)"\s*—\s*/)
         const body = quotePrefix ? segment.slice(quotePrefix[0].length) : segment
         const colonIndex = body.indexOf(': ')

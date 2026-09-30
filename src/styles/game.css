@@ -10,7 +10,7 @@
 
 @media (min-width: 1024px) and (min-height: 700px) {
   .game-board-screen {
-    zoom: 0.88; /* ponytail: viewport fit via zoom, replace with flex scaling if zoom unsupported */
+    zoom: 0.88;
   }
 }
 

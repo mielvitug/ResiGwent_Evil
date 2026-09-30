@@ -25,7 +25,6 @@ function MainMenu({ onNavigate }) {
   const firstButtonRef = useRef(null)
   const [matchLog, setMatchLog] = useState(loadMatchLog)
   const collageRows = useMemo(() => {
-    // ponytail: rarity lookup keeps catalog borders; unreferenced folder art falls back to common
     const rarityByArt = new Map()
     cards.forEach((card) => {
       rarityByArt.set(card.artwork, card.rarity ?? 'common')
