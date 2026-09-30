@@ -32,7 +32,7 @@ export function onMusicStateChange(callback) {
 }
 
 function notify() {
-  listeners.forEach((fn) => fn({ track: currentTrack, playing: isPlaying }))
+  listeners.forEach((fn) => fn({ track: currentTrack, playing: isPlaying, volume: audioSettings.musicVolume }))
 }
 
 export function setTrack(trackName) {
@@ -124,6 +124,7 @@ export function stopMusic() {
 export function setMusicVolume(volume) {
   audioSettings.musicVolume = clampVolume(volume)
   if (bgMusic) bgMusic.volume = audioSettings.music ? audioSettings.musicVolume / 100 : 0
+  notify()
 }
 
 export function setMusicEnabled(enabled) {

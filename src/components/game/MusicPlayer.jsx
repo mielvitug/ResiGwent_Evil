@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getCurrentTrack, getIsPlaying, onMusicStateChange, togglePlayPause, skipTrack, setMusicVolume } from '../../audio/audioEngine.js'
-import { loadSettings } from '../../settings/settingsStore.js'
+import { loadSettings, saveSettings } from '../../settings/settingsStore.js'
 import Icon from '../ui/Icon'
 
 function formatTrackName(raw) {
@@ -14,15 +14,17 @@ function MusicPlayer() {
   const [playing, setPlaying] = useState(getIsPlaying)
   const [volume, setVolume] = useState(() => loadSettings().musicVolume)
 
-  useEffect(() => onMusicStateChange(({ track: t, playing: p }) => {
+  useEffect(() => onMusicStateChange(({ track: t, playing: p, volume: v }) => {
     setTrack(t)
     setPlaying(p)
+    if (typeof v === 'number') setVolume(v)
   }), [])
 
   function handleVolume(e) {
     const v = Number(e.target.value)
     setVolume(v)
     setMusicVolume(v)
+    saveSettings({ ...loadSettings(), musicVolume: v })
   }
 
   function volumeIcon() {
