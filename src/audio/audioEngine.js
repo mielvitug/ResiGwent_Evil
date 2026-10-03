@@ -74,7 +74,7 @@ export function playMusic(trackName) {
 
   try {
     bgMusic = new Audio(`/audio/music/${trackName}.mp3`)
-    bgMusic.loop = true
+    bgMusic.loop = false
     bgMusic.volume = audioSettings.musicVolume / 100
     bgMusic.onended = () => { playMusic(getNextTrack()) }
     bgMusic.play().then(() => {
