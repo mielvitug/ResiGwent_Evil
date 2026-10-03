@@ -8,13 +8,14 @@ import ScreenShell from '../components/layout/ScreenShell'
 import { cards, factions, leaders, entries, organizations } from '../data/catalog.js'
 import { filterCards, getCardView, getFilterOptions, getLeaderView } from '../data/catalogQueries.js'
 import { rowOptions } from '../data/rows.js'
+import { DIFFICULTY_ORDER } from '../game/difficulty.js'
 import { getDecks, putDeck } from '../api/client.js'
 
 const MIN_DECK_SIZE = 3
 const MAX_DECK_SIZE = 25
 const STORAGE_KEY = 'resigwent-evil-loadout'
 const SERVER_DECK_NAME = 'default'
-const DIFFICULTY_IDS = new Set(['recruit', 'veteran', 'nemesis'])
+const DIFFICULTY_IDS = new Set(DIFFICULTY_ORDER)
 
 function getDefaultLeaderId(factionId) {
   return leaders.find((leader) => leader.factionId === factionId && leader.isDefault && leader.isSelectable)?.id
@@ -241,6 +242,7 @@ function DeckBuilder({ onBack, onStartMatch }) {
           maxSize={MAX_DECK_SIZE}
           onRemove={handleRemove}
           difficulty={difficulty}
+          factionId={selectedFactionId}
           onDifficultyChange={(val) => { setDifficulty(val); setSaveMessage('') }}
           saveMessage={saveMessage}
           onSave={handleSave}

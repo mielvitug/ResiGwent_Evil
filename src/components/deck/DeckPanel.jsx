@@ -1,8 +1,9 @@
 import { useRef } from 'react'
 import Button from '../ui/Button'
 import CardTile from '../cards/CardTile'
+import { DIFFICULTY_ORDER, difficultyLabel } from '../../game/difficulty.js'
 
-function DeckPanel({ leader, cards, maxSize, onRemove, difficulty, onDifficultyChange, saveMessage, onSave, onStartMatch, canStart }) {
+function DeckPanel({ leader, cards, maxSize, onRemove, difficulty, factionId, onDifficultyChange, saveMessage, onSave, onStartMatch, canStart }) {
   const panelRef = useRef(null)
 
   function handleRemove(card) {
@@ -50,9 +51,9 @@ function DeckPanel({ leader, cards, maxSize, onRemove, difficulty, onDifficultyC
         <div className="difficulty-picker">
           <label htmlFor="difficulty-select">AI difficulty</label>
           <select id="difficulty-select" value={difficulty} onChange={(event) => onDifficultyChange(event.target.value)}>
-            <option value="recruit">Recruit</option>
-            <option value="veteran">Veteran</option>
-            <option value="nemesis">Nemesis</option>
+            {DIFFICULTY_ORDER.map((id) => (
+              <option value={id} key={id}>{difficultyLabel(id, factionId)}</option>
+            ))}
           </select>
         </div>
         <Button label="Save Deck" variant="secondary" size="small" disabled={!canStart} onClick={onSave} />

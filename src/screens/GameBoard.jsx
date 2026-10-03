@@ -11,6 +11,7 @@ import { useSfx } from '../audio/useSfx.js'
 import { formatCount } from '../utils/formatCount.js'
 import { shuffleDeck } from '../utils/shuffleDeck.js'
 import { recordMatch } from '../log/matchLog.js'
+import { difficultyLabel } from '../game/difficulty.js'
 import { loadSettings, applyAnimationPreference } from '../settings/settingsStore.js'
 import { ROWS, activateLeaderAbility, advanceOpponentOnce, confirmMulligan, createMatchState, finishRound, getRowScore, getTotalScore, playPlayerCard, passPlayer, resolveOpponentTurn, startNextRound, toggleMulliganCard } from '../game/gameRules.js'
 
@@ -75,6 +76,7 @@ function GameBoard({ loadout, onReturn }) {
   const matchEntry = useMemo(() => game.matchResult
     ? {
         faction: game.playerFaction.name,
+        factionId: game.playerFaction.id,
         opponent: game.opponentFaction.name,
         difficulty: game.difficulty,
         rounds: `${game.playerWins}-${game.opponentWins}`,
@@ -270,7 +272,7 @@ function GameBoard({ loadout, onReturn }) {
       <header className="game-hud">
         <Button variant="ghost" size="small" icon="close" onClick={onReturn}>Quit to Menu</Button>
         <div className="title-box">
-          <p className="eyebrow">Containment zone / round {game.round} / {game.difficulty}</p>
+          <p className="eyebrow">Containment zone / round {game.round} / {difficultyLabel(game.difficulty, game.playerFaction.id)}</p>
           <h1>Battle Board</h1>
         </div>
         <div className="game-hud__status" aria-live="polite">

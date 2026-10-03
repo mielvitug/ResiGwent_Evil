@@ -3,6 +3,7 @@ import Button from '../components/ui/Button'
 import { cards } from '../data/catalog.js'
 import { menuArtwork } from '../data/menuArtManifest.js'
 import { loadMatchLog, pullMatchLog } from '../log/matchLog.js'
+import { difficultyLabel } from '../game/difficulty.js'
 import { shuffleDeck } from '../utils/shuffleDeck.js'
 
 const menuItems = [
@@ -72,7 +73,7 @@ function MainMenu({ onNavigate }) {
           <h1 className="wordmark">Resi<span className="wordmark__gwent">Gwent</span> <span>Evil</span></h1>
           <p className="menu-tagline">Every hand is a decision. Every round is a risk.</p>
         </div>
-        <p className="asset-disclaimer">All artwork and image assets are the property of CAPCOM CO., LTD. ResiGwent Evil is a non-commercial fan project, not affiliated with or endorsed by CAPCOM.</p>
+        <p className="asset-disclaimer">All artwork and image assets are the property of CAPCOM CO., LTD., and the music belongs to CAPCOM and CD PROJEKT RED. Gameplay is inspired by Gwent (CD PROJEKT RED). ResiGwent Evil is a non-commercial fan project, not affiliated with or endorsed by CAPCOM or CD PROJEKT RED.</p>
       </section>
 
       <section className="menu-navigation" aria-labelledby="menu-title">
@@ -103,7 +104,7 @@ function MainMenu({ onNavigate }) {
                 <li key={entry.at}>
                   <span className={`log-outcome log-outcome--${entry.outcome}`}>{OUTCOME_LABEL[entry.outcome] ?? entry.outcome}</span>
                   <span>{entry.faction} vs {entry.opponent}</span>
-                  <small>{entry.rounds} · {entry.difficulty}</small>
+                  <small>{entry.rounds} · {difficultyLabel(entry.difficulty, entry.factionId ?? String(entry.faction ?? '').toLowerCase())}</small>
                 </li>
               ))}
             </ul>
