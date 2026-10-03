@@ -2,11 +2,11 @@
 
 ## The split
 
-About 70 percent AI assisted, about 30 percent written by me. My share is the game content and the rules behind it. Every card and leader in `src/data/catalog.js` and `src/data/leaders.js`, the rarity bands and legendary cap in `src/data/balance.js`, and the validation rules in `src/data/catalogValidation.js`. I can walk through any of it and explain the choices. The log below shows where AI help went.
+About 70 percent AI assisted, about 30 percent written by me. My share is the game content and the rules behind it. Every card and leader in `src/data/catalog.js` and `src/data/leaders.js`, the artwork pairings, the leader kits in `src/game/leaderEffects.js`, and the validation rules in `src/data/catalogValidation.js`. I can walk through any of it and explain the choices. The log below shows where AI help went.
 
 ## 1. How I used AI
 
-*Note: August work predates per-feature commits and landed in [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb) (squashed initial commit); September entries link individually.*
+*Note: the project was not on GitHub yet in August. All August work happened locally and was uploaded on Sep 6 as one squashed initial commit ([`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)), so the five August entries share that single commit. September onward, entries link individually.*
 
 Week 1, Aug 24 to Aug 30.
 - 2026-08-24, with Claude, scaffolded ScreenShell and Button, kept structure and reworked props by hand. Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
@@ -37,33 +37,41 @@ Week 6, Oct 1.
 
 ## 2. Where the AI got it wrong
 
-1. Invalid origin broke the whole app.
+*Note: these three catches happened during local work before the project reached GitHub, and landed in the Sep 6 squashed initial commit ([`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)), same as the August log entries above.*
+
+1. Krauser's wrong story group crashed the whole app.
 - AI gave: Krauser `originGroupId: 'los-iluminados'`, which is an organization, not an origin group.
 - Wrong: catalog validation threw `Invalid catalog` and the app could not reach the main menu at all.
 - Instead: I reported the crash and the origin was corrected to `'las-plagas'`.
-- Commit: [`74db13a`](https://github.com/mielvitug/ResiGwent_Evil/commit/74db13a)
+- Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
 
-2. Wrong faction.
-- AI gave: Krauser as `factionId: 'bioterrorism'`.
-- Wrong: Krauser is Los Iluminados (RE4 Las Plagas storyline), so the card sat in the wrong deck.
-- Instead: I corrected it flat-out; faction fixed to `'los-iluminados'`.
-- Commit: [`74db13a`](https://github.com/mielvitug/ResiGwent_Evil/commit/74db13a)
+2. Krauser was missing his Los Iluminados label.
+- AI gave: Krauser with `factionId: 'bioterrorism'` but no Los Iluminados organization tag.
+- Wrong: Bioterrorism is correct as his faction, but without the organization label he never sorted into the Los Iluminados deck where he belongs.
+- Instead: I labeled him `los-iluminados` at the organization level and left the Bioterrorism faction alone.
+- Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
 
-3. Duplicate key masking missing art.
+3. One repeated image line hid every other leader's portrait.
 - AI gave: Gideon's leader entry with `artwork` twice (empty early, filename at the end; the last key silently wins).
 - Wrong: only Gideon showed an image while every other bioterrorism leader showed placeholders, and the cause was invisible at a glance.
 - Instead: I had the leaders file rewritten with one end-placed `artwork` key per entry and verified the duplication was gone.
-- Commit: [`7e82f05`](https://github.com/mielvitug/ResiGwent_Evil/commit/7e82f05)
+- Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
+
+4. The saved volume kept beating the new default.
+- AI gave: a volume default lowered to 30 percent in code, while browsers kept playing 70 percent.
+- Wrong: saved settings outrank code defaults, so the new default never reached existing browsers, and the mini-player slider never saved at all, resetting every reload.
+- Instead: I traced the three settings layers, synced both sliders through the engine broadcast, and made either slider persist, so the last touch wins everywhere.
+- Commits: [`747e4c8`](https://github.com/mielvitug/ResiGwent_Evil/commit/747e4c8), [`728819a`](https://github.com/mielvitug/ResiGwent_Evil/commit/728819a)
 
 ## 3. Who wrote what
 
-### My fifth, explained
+### My Own Work
 
-1. Rarity power bands (`src/data/balance.js`, lines 26 to 31). Common 2 to 10, uncommon 4 to 9, rare 4.5 to 11.5, legendary 8 to 13. Ranges overlap so a strong common can fight a weak legendary, averages climb with rarity. Legendary cap of 6 per organization (line 34) stops top card stacking. Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
+1. Card names, quotes, abilities, and artwork pairings (`src/data/catalog.js`, `src/data/leaders.js`, `public/images/cards/`). Every card's title, flavor quote, ability, and image was chosen and matched by me, both what the card says and what it does on the board, so the card you read is the character you recognize. New faces arrived in batches as I found the right art: Mia, Sherry, and Tyrell, then Neptune and Yawn, then the HUNK and railgun Jill pieces. Commits: [`74db13a`](https://github.com/mielvitug/ResiGwent_Evil/commit/74db13a), [`8164b3c`](https://github.com/mielvitug/ResiGwent_Evil/commit/8164b3c), [`3b01f0e`](https://github.com/mielvitug/ResiGwent_Evil/commit/3b01f0e)
 
-2. Federal Leon, cleanse leader (`src/data/leaders.js`, line 7). Removes all debuffs from allied cards. He is the Counterforce support leader, so his kit answers Bioterrorism weaken effects instead of adding points. Leaders support, units score. My design rule. Commit: [`8164b3c`](https://github.com/mielvitug/ResiGwent_Evil/commit/8164b3c)
+2. Validation that rejects bad data (`src/data/catalogValidation.js`). A deck slot once showed empty from a data typo, so I wrote rules rejecting any card whose game, group, type, or id mismatches the master lists. Bad data fails loudly at load instead of blank tiles at midnight. Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
 
-3. Validation that rejects bad data (`src/data/catalogValidation.js`). A deck slot once showed empty from a data typo, so I wrote rules rejecting any card whose game, group, type, or id mismatches the master lists. Bad data fails loudly at load instead of blank tiles at midnight. Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
+3. Leader kits (`src/game/leaderEffects.js`, `src/data/leaders.js`). I designed how all 17 leaders play on the battle board: most boost or weaken rows, but the special ones break the mold, Federal Leon cleansing allied debuffs, Eveline seizing enemy cards, Gideon advancing allied evolutions, Birkin and HUNK deploying allies onto the board. Leaders support, units score, my design rule. The AI implemented the table from my kits. Commit: [`3de6bdb`](https://github.com/mielvitug/ResiGwent_Evil/commit/3de6bdb)
 
 ### Best-understood AI-written piece
 
@@ -71,4 +79,4 @@ The AI wrote CardTile, the shared card tile (`src/components/cards/CardTile.jsx`
 
 ## Statement
 
-At least 30 percent of this codebase is work I did myself, listed above with file paths: the card data, leaders, rarity bands, and validation rules, plus all hand-edited card artwork, names, quotes, and ability text. I can explain any of it, including the choices and the bugs behind it. The assisted work above was directed, reviewed, and tested by me.
+At least 30 percent of this codebase is work I did myself, listed above with file paths: the card data, leaders, artwork pairings, leader kits, and validation rules, plus all hand-edited card names, quotes, and ability text. I can explain any of it, including the choices and the bugs behind it. The assisted work above was directed, reviewed, and tested by me.
