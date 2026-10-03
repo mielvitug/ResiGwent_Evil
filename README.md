@@ -1,10 +1,14 @@
+[![Made with AI](https://img.shields.io/badge/Made_with-AI_assistance-blue)](AI-USAGE.md)
+
 An unofficial fan-game spinoff of The Witcher's Gwent-like gameplay, set in the Resident Evil universe.
 
-Disclaimer: all artwork, images, and music used here belong to CAPCOM. This is a non-commercial fan project, not affiliated with or endorsed by CAPCOM. All original code and content here are all rights reserved, see LICENSE.
+Disclaimer: all artwork and images used here belong to CAPCOM, and the music belongs to CAPCOM and CD PROJEKT RED. Gameplay is inspired by Gwent (CD PROJEKT RED). This is a non-commercial fan project, not affiliated with or endorsed by CAPCOM or CD PROJEKT RED. All original code and content here are all rights reserved, see LICENSE.
 
 Working game link here: https://resigwentevil.vercel.app
 
 # ResiGwent Evil
+
+Built with assistance from Claude, Codex, and Gemini (about 70% AI-assisted); at least 30% written by hand. See [AI-USAGE.md](AI-USAGE.md).
 
 A Gwent-style card battler set in the Resident Evil universe. Build a deck of 3 to 25 cards, then win a best-of-3 match across three combat rows. Made for players first, and for course markers second.
 
